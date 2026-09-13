@@ -165,21 +165,17 @@ async function markPairingUsed(code, usedAt, deviceId) {
 }
 
 // ---------- COMMANDS ----------
-async function listCommandsByUser(userId, deviceId, limit = 50) {
-  let sql, params;
-  if (deviceId) {
-    sql = `SELECT id, device_id, user_id, item_n, status, output, error, exit_code, duration_ms,
-                  created_at, started_at, finished_at
-           FROM commands WHERE user_id = $1 AND device_id = $2
-           ORDER BY created_at DESC LIMIT $3`;
-    params = [userId, deviceId, limit];
-  } else {
-    sql = `SELECT id, device_id, user_id, item_n, status, output, error, exit_code, duration_ms,
-                  created_at, started_at, finished_at
-           FROM commands WHERE user_id = $1
-           ORDER BY created_at DESC LIMIT $2`;
-    params = [userId, limit];
-  }
+async function listCommandsByUser(userId, deviceId, limit = 50, fromTs = 0, toTs = 0) {
+  const where = ['user_id = $1'];
+  const params = [userId];
+  let p = 2;
+  if (deviceId) { where.push(`device_id = $${p++}`); params.push(deviceId); }
+  if (fromTs) { where.push(`COALESCE(started_at, created_at) >= $${p++}`); params.push(fromTs); }
+  if (toTs)   { where.push(`COALESCE(started_at, created_at) <= $${p++}`); params.push(toTs);   }
+  params.push(limit);
+  const sql = `SELECT id, device_id, user_id, item_n, status, output, error, exit_code, duration_ms,
+                      created_at, started_at, finished_at
+               FROM commands WHERE ${where.join(' AND ')} ORDER BY created_at DESC LIMIT $${p}`;
   const r = await q(sql, params);
   return r.rows;
 }

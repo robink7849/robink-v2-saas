@@ -1178,6 +1178,247 @@ button {
 }
 
 /* ============================================================
+   REPORT MODAL
+   ============================================================ */
+.report-inner {
+  width: min(960px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+.report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.report-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--cyan);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.report-close {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  width: 30px; height: 30px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+}
+.report-close:hover { background: var(--bg-hover); color: var(--text-1); }
+.report-filters {
+  display: flex;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.report-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+  flex: 1;
+}
+.report-filter label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.report-filter select {
+  padding: 8px 10px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  color: var(--text-1);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  outline: none;
+}
+.report-filter select:focus { border-color: var(--cyan); }
+.report-btn {
+  padding: 9px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--text-1);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.report-btn:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--line-strong); }
+.report-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.report-btn.primary {
+  background: var(--cyan);
+  color: var(--bg-0);
+  border-color: var(--cyan);
+  font-weight: 600;
+}
+.report-btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
+.report-btn.green {
+  background: var(--green);
+  color: var(--bg-0);
+  border-color: var(--green);
+  font-weight: 600;
+}
+.report-btn.green:hover:not(:disabled) { filter: brightness(1.1); }
+.report-btn.ghost { background: transparent; }
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.report-summary-card {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.report-summary-card .label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.report-summary-card .value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--text-1);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.report-summary-card.ok .value { color: var(--green); }
+.report-summary-card.error .value { color: var(--red); }
+.report-table-wrap {
+  flex: 1;
+  overflow: auto;
+  min-height: 200px;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-2);
+  z-index: 1;
+}
+.report-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--line);
+  font-weight: 500;
+}
+.report-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-2);
+}
+.report-table tr:hover td { background: var(--bg-hover); }
+.report-table .num {
+  font-family: var(--font-mono);
+  color: var(--text-4);
+  font-size: 11px;
+}
+.report-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.report-status.ok      { background: rgba(34,197,94,0.15);  color: var(--green); }
+.report-status.error   { background: rgba(239,68,68,0.15);  color: var(--red); }
+.report-status.running { background: rgba(234,179,8,0.15);  color: #eab308; }
+.report-status.pending { background: rgba(148,163,184,0.15); color: var(--text-4); }
+.report-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  justify-content: flex-end;
+}
+.report-empty {
+  padding: 60px 30px;
+  text-align: center;
+  color: var(--text-4);
+  font-size: 13px;
+}
+.report-output-preview {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 320px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+@media print {
+  body { background: white !important; color: black !important; }
+  body * { visibility: hidden; }
+  #reportModal, #reportModal * { visibility: visible; }
+  #reportModal {
+    position: absolute !important;
+    inset: 0 !important;
+    background: white !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    display: flex !important;
+    align-items: flex-start !important;
+  }
+  #reportModal .report-inner {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    height: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: white !important;
+    border-radius: 0 !important;
+  }
+  #reportModal .report-header { border-bottom: 1px solid #ccc !important; padding: 12px 24px !important; }
+  #reportModal .report-close, #reportModal .report-actions, #reportModal .report-filters { display: none !important; }
+  #reportModal .report-title { color: #000 !important; font-size: 16px !important; }
+  #reportModal .report-table th { color: #555 !important; background: #f5f5f5 !important; }
+  #reportModal .report-table td { color: #000 !important; border-color: #ddd !important; }
+  #reportModal .report-table thead { background: #f5f5f5 !important; }
+  #reportModal .report-summary { background: white !important; padding: 12px 24px !important; }
+  #reportModal .report-summary-card { background: #fafafa !important; border-color: #ddd !important; }
+  #reportModal .report-summary-card .label { color: #666 !important; }
+  #reportModal .report-summary-card .value { color: #000 !important; }
+  #reportModal .report-status.ok      { background: #d1fae5 !important; color: #065f46 !important; }
+  #reportModal .report-status.error   { background: #fee2e2 !important; color: #991b1b !important; }
+  #reportModal .report-status.running { background: #fef3c7 !important; color: #92400e !important; }
+  #reportModal .report-status.pending { background: #f1f5f9 !important; color: #475569 !important; }
+  #reportModal .report-output-preview { background: #fafafa !important; border-color: #ddd !important; color: #333 !important; }
+}
+
+/* ============================================================
    TOAST
    ============================================================ */
 .toast {
@@ -1321,6 +1562,56 @@ button {
   <div class="search-modal-inner">
     <input class="search-modal-input" id="modalSearch" placeholder="Bir şey yazın…" autocomplete="off" />
     <div class="search-modal-results" id="modalResults"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOPLU RAPOR MODAL
+     ============================================================ -->
+<div class="search-modal" id="reportModal">
+  <div class="search-modal-inner report-inner">
+    <div class="report-header">
+      <div class="report-title">📊 ROBINK V2 — TOPLU RAPOR</div>
+      <button class="report-close" id="reportCloseBtn" type="button" aria-label="Kapat">✕</button>
+    </div>
+    <div class="report-filters">
+      <div class="report-filter">
+        <label>Tarih Aralığı</label>
+        <select id="reportRange">
+          <option value="today">Bugün</option>
+          <option value="7d" selected>Son 7 gün</option>
+          <option value="30d">Son 30 gün</option>
+          <option value="all">Tüm zamanlar</option>
+        </select>
+      </div>
+      <div class="report-filter">
+        <label>Cihaz</label>
+        <select id="reportDevice">
+          <option value="">Tüm cihazlar</option>
+        </select>
+      </div>
+      <button class="report-btn primary" id="reportRunBtn" type="button">🔄 Rapor Oluştur</button>
+    </div>
+    <div id="reportSummary" class="report-summary"></div>
+    <div class="report-table-wrap">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th style="width:60px">#</th>
+            <th>Öğe</th>
+            <th>Cihaz</th>
+            <th style="width:90px">Durum</th>
+            <th style="width:90px">Süre</th>
+            <th style="width:140px">Tarih</th>
+          </tr>
+        </thead>
+        <tbody id="reportTbody"></tbody>
+      </table>
+    </div>
+    <div class="report-actions">
+      <button class="report-btn ghost" id="reportPrintBtn" type="button" disabled>🖨 PDF Olarak Kaydet</button>
+      <button class="report-btn green" id="reportWhatsappBtn" type="button" disabled>📱 WhatsApp'ta Paylaş</button>
+    </div>
   </div>
 </div>
 
@@ -2635,6 +2926,8 @@ function renderDeviceMenu() {
       ${state.lang === 'en' ? 'No devices yet' : 'Henüz cihaz yok'}
     </div>
     <div class="device-menu-divider"></div>
+    <div class="device-menu-item" id="reportBtn">📊 RAPOR AL</div>
+    <div class="device-menu-divider"></div>
     <div class="device-menu-item add" id="addDeviceBtn">+ YENİ CİHAZ EKLE</div>`;
   } else {
     let html = state.devices.map(d => `
@@ -2644,6 +2937,8 @@ function renderDeviceMenu() {
         <span style="font-size:10px;color:var(--text-4)">${d.isOnline ? 'online' : 'offline'}</span>
       </div>`).join('');
     html += `<div class="device-menu-divider"></div>
+      <div class="device-menu-item" id="reportBtn">📊 RAPOR AL</div>
+      <div class="device-menu-divider"></div>
       <div class="device-menu-item add" id="addDeviceBtn">+ YENİ CİHAZ EKLE</div>`;
     menu.innerHTML = html;
     menu.querySelectorAll('.device-menu-item[data-id]').forEach(el => {
@@ -2657,6 +2952,174 @@ function renderDeviceMenu() {
     });
   }
   $('#addDeviceBtn').addEventListener('click', generatePairingCode);
+
+  // ============================================================
+  // RAPOR MODAL
+  // ============================================================
+  const reportBtn = $('#reportBtn');
+  if (reportBtn) reportBtn.addEventListener('click', () => {
+    $('#deviceMenu').classList.remove('open');
+    openReportModal();
+  });
+  $('#reportCloseBtn')?.addEventListener('click', closeReportModal);
+  $('#reportModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'reportModal') closeReportModal();
+  });
+  $('#reportRunBtn')?.addEventListener('click', runReport);
+  $('#reportPrintBtn')?.addEventListener('click', printReport);
+  $('#reportWhatsappBtn')?.addEventListener('click', shareReportWhatsapp);
+}
+
+// ---------- Rapor yardimci fonksiyonlari ----------
+let reportState = { commands: [], summary: null };
+
+function reportTimeRange(range) {
+  const now = Date.now();
+  if (range === 'today') {
+    const d = new Date(); d.setHours(0, 0, 0, 0);
+    return { from: d.getTime(), to: now };
+  }
+  if (range === '7d')  return { from: now - 7  * 86400000, to: now };
+  if (range === '30d') return { from: now - 30 * 86400000, to: now };
+  return { from: 0, to: 0 };
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function fmtDur(ms) {
+  if (!ms && ms !== 0) return '—';
+  if (ms < 1000) return ms + 'ms';
+  if (ms < 60000) return (ms / 1000).toFixed(1) + 's';
+  const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000);
+  return m + 'd ' + s + 's';
+}
+
+// itemN -> title map (rapor tablosunda oge adini gostermek icin)
+const ITEM_TITLE_BY_N = {};
+(function buildItemTitleMap() {
+  try {
+    for (const list of Object.values(GROUPS)) {
+      for (const item of list) {
+        if (item && item.n) ITEM_TITLE_BY_N[item.n] = item.title || ('#' + item.n);
+      }
+    }
+  } catch (e) {}
+})();
+
+function openReportModal() {
+  const sel = $('#reportDevice');
+  sel.innerHTML = '<option value="">Tüm cihazlar</option>' +
+    state.devices.map(d => `<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)}</option>`).join('');
+  $('#reportRange').value = '7d';
+  $('#reportSummary').innerHTML = '';
+  $('#reportTbody').innerHTML = '<tr><td colspan="6" class="report-empty">Rapor oluşturmak için filtreleri seçip "Rapor Oluştur" butonuna tıklayın.</td></tr>';
+  $('#reportPrintBtn').disabled = true;
+  $('#reportWhatsappBtn').disabled = true;
+  reportState = { commands: [], summary: null };
+  $('#reportModal').classList.add('open');
+}
+
+function closeReportModal() { $('#reportModal').classList.remove('open'); }
+
+async function runReport() {
+  const range = $('#reportRange').value;
+  const deviceId = $('#reportDevice').value;
+  const { from, to } = reportTimeRange(range);
+  const params = new URLSearchParams({ from, to, limit: 1000 });
+  if (deviceId) params.set('deviceId', deviceId);
+  const url = '/api/report?' + params.toString();
+
+  const btn = $('#reportRunBtn');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Yükleniyor...';
+  try {
+    const data = await api(url);
+    if (!data.ok) throw new Error(data.error || 'Bilinmeyen hata');
+    reportState = { commands: data.commands, summary: data.summary };
+    renderReportSummary(data.summary);
+    renderReportTable(data.commands);
+    $('#reportPrintBtn').disabled = data.commands.length === 0;
+    $('#reportWhatsappBtn').disabled = data.commands.length === 0;
+    if (data.commands.length === 0) toast('Bu aralıkta komut yok');
+    else toast(`${data.commands.length} komut yüklendi`);
+  } catch (e) {
+    toast('Rapor hatası: ' + e.message);
+    $('#reportSummary').innerHTML = '<div class="report-empty">Hata: ' + escapeHtml(e.message) + '</div>';
+    $('#reportTbody').innerHTML = '';
+    $('#reportPrintBtn').disabled = true;
+    $('#reportWhatsappBtn').disabled = true;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+function renderReportSummary(s) {
+  const okPct = s.total > 0 ? Math.round(100 * s.ok / s.total) : 0;
+  $('#reportSummary').innerHTML = `
+    <div class="report-summary-card"><div class="label">Toplam</div><div class="value">${s.total}</div></div>
+    <div class="report-summary-card ok"><div class="label">Başarılı</div><div class="value">${s.ok}</div></div>
+    <div class="report-summary-card error"><div class="label">Hatalı</div><div class="value">${s.error}</div></div>
+    <div class="report-summary-card"><div class="label">Çalışan</div><div class="value">${s.running}</div></div>
+    <div class="report-summary-card"><div class="label">Bekleyen</div><div class="value">${s.pending}</div></div>
+    <div class="report-summary-card"><div class="label">Başarı %</div><div class="value">${okPct}</div></div>
+    <div class="report-summary-card"><div class="label">Toplam Süre</div><div class="value">${fmtDur(s.totalDurationMs)}</div></div>
+  `;
+}
+
+function renderReportTable(commands) {
+  if (commands.length === 0) {
+    $('#reportTbody').innerHTML = '<tr><td colspan="6" class="report-empty">Bu aralıkta komut bulunamadı.</td></tr>';
+    return;
+  }
+  $('#reportTbody').innerHTML = commands.map(c => {
+    const title = ITEM_TITLE_BY_N[c.itemN] || ('Öğe #' + c.itemN);
+    const out = c.output ? String(c.output).slice(0, 200) : '';
+    return `
+      <tr>
+        <td class="num">#${c.itemN}</td>
+        <td>${escapeHtml(title)}</td>
+        <td>${escapeHtml(c.deviceName || '—')}</td>
+        <td><span class="report-status ${c.status}">${c.status}</span></td>
+        <td>${fmtDur(c.durationMs)}</td>
+        <td>${fmtDate(c.finishedAt || c.startedAt || c.createdAt)}</td>
+      </tr>
+      ${out ? `<tr><td colspan="6"><div class="report-output-preview">${escapeHtml(out)}${out.length >= 200 ? '…' : ''}</div></td></tr>` : ''}
+    `;
+  }).join('');
+}
+
+function printReport() {
+  if (!reportState.commands || reportState.commands.length === 0) return;
+  window.print();
+}
+
+function shareReportWhatsapp() {
+  if (!reportState.summary) return;
+  const s = reportState.summary;
+  const rangeSel = $('#reportRange');
+  const rangeLabel = rangeSel.options[rangeSel.selectedIndex].text;
+  const deviceLabel = $('#reportDevice').selectedOptions[0]?.text || 'Tüm cihazlar';
+  const okPct = s.total > 0 ? Math.round(100 * s.ok / s.total) : 0;
+  const lines = [
+    '*Robink V2 Rapor*',
+    'Tarih: ' + rangeLabel,
+    'Cihaz: ' + deviceLabel,
+    '',
+    'Toplam: ' + s.total + ' komut',
+    'Basarili: ' + s.ok,
+    'Hatali: ' + s.error,
+    'Toplam sure: ' + fmtDur(s.totalDurationMs),
+    'Basari orani: ' + okPct + '%',
+    '',
+    'Detayli rapor: ' + location.origin,
+  ];
+  const text = encodeURIComponent(lines.join('\n'));
+  window.open('https://wa.me/?text=' + text, '_blank');
 }
 
 async function generatePairingCode() {

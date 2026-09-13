@@ -77,9 +77,11 @@ function makeJsonDb() {
       const p = d.pairing_codes.find(c => c.code === code);
       if (p) { p.used_at = usedAt; p.device_id = did; }
     }),
-    listCommandsByUser: async (uid, did, limit = 50) => {
+    listCommandsByUser: async (uid, did, limit = 50, fromTs = 0, toTs = 0) => {
       let cmds = dbRead().commands.filter(c => c.user_id === uid);
       if (did) cmds = cmds.filter(c => c.device_id === did);
+      if (fromTs) cmds = cmds.filter(c => (c.started_at || c.created_at) >= fromTs);
+      if (toTs)   cmds = cmds.filter(c => (c.started_at || c.created_at) <= toTs);
       return cmds.sort((a, b) => b.created_at - a.created_at).slice(0, limit);
     },
     findCommandById: async (id, uid) => dbRead().commands.find(c => c.id === id && c.user_id === uid) || null,
@@ -291,6 +293,54 @@ app.get('/api/commands', webAuth, async (req, res) => {
   const deviceId = req.query.deviceId;
   const cmds = await db.listCommandsByUser(req.user.id, deviceId || null, 50);
   res.json({ ok: true, commands: cmds.map(serializeCmd) });
+});
+
+// Web: tarih + cihaz filtreli toplu rapor (PDF/WhatsApp icin)
+app.get('/api/report', webAuth, async (req, res) => {
+  const fromTs = parseInt(req.query.from) || 0;
+  const toTs   = parseInt(req.query.to)   || 0;
+  const deviceId = req.query.deviceId || null;
+  const limit   = Math.min(parseInt(req.query.limit) || 1000, 5000);
+
+  // Cihaz filtresi: sadece bu user'a ait cihazlara izin ver
+  let validDeviceId = null;
+  if (deviceId) {
+    const dev = await db.findDeviceById(deviceId);
+    if (!dev || dev.user_id !== req.user.id) {
+      return res.status(404).json({ ok: false, error: 'Cihaz bulunamadi veya size ait degil' });
+    }
+    validDeviceId = deviceId;
+  }
+
+  const cmds = await db.listCommandsByUser(req.user.id, validDeviceId, limit, fromTs, toTs);
+
+  // Ozet istatistik
+  let totalDuration = 0, okCount = 0, errorCount = 0, runningCount = 0, pendingCount = 0;
+  for (const c of cmds) {
+    if (c.duration_ms) totalDuration += c.duration_ms;
+    if (c.status === 'ok')      okCount++;
+    else if (c.status === 'error')   errorCount++;
+    else if (c.status === 'running') runningCount++;
+    else if (c.status === 'pending') pendingCount++;
+  }
+
+  // Cihaz adlarini da ekle (raporda gostermek icin)
+  const devices = await db.listDevicesByUser(req.user.id);
+  const deviceMap = {};
+  for (const d of devices) deviceMap[d.id] = d.name;
+
+  res.json({
+    ok: true,
+    summary: {
+      total: cmds.length,
+      ok: okCount, error: errorCount, running: runningCount, pending: pendingCount,
+      totalDurationMs: totalDuration,
+    },
+    commands: cmds.map(c => ({
+      ...serializeCmd(c),
+      deviceName: deviceMap[c.device_id] || 'Bilinmiyor',
+    })),
+  });
 });
 
 // Cihaz sil
