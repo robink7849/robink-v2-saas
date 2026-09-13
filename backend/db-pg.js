@@ -1,31 +1,65 @@
 /**
  * Robink V2 — PostgreSQL veritabani katmani (Supabase / Render PostgreSQL)
- * - JSON DB ile ayni arayuzu saglar (findUsers, insertCommand vb.)
- * - Tek tabloya tek sorumluluk ilkesiyle bolunmus atomik fonksiyonlar
+ * - JSON DB ile ayni arayuzu saglar
  * - Baglanti havuzu (pg.Pool) + SSL
+ * - IPv4 zorlamasi: DNS'i manuel cozip IPv4 adresini dogrudan kullanir
+ *   (pg 8.x "family" parametresini tanimiyor; bu yuzden onceden cozumleyip IP veriyoruz)
  */
 
 const { Pool } = require('pg');
+const dns = require('dns');
+const dnsLookup = require('util').promisify(dns.lookup);
 
 let pool = null;
 let initPromise = null;
 
-function getPool() {
+async function resolveIPv4(host) {
+  // once IPv4 dene
+  try {
+    const r = await dnsLookup(host, { family: 4 });
+    return r.address;
+  } catch (e4) {
+    // IPv4 yoksa, hostname'in IPv6'sini logla ve fallback olarak IPv6 dene
+    console.warn(`[Robink V2 PG] IPv4 cozumleme basarisiz: ${host} — IPv6 deneniyor`);
+    try {
+      const r = await dnsLookup(host, { family: 6 });
+      return r.address; // Son care: IPv6 — calismazsa Render'da ENETUNREACH
+    } catch (e6) {
+      throw new Error(`DNS basarisiz (IPv4 ve IPv6): ${host} — ${e4.message}`);
+    }
+  }
+}
+
+async function getPool() {
   if (pool) return pool;
   const cs = process.env.DATABASE_URL;
   if (!cs) throw new Error('DATABASE_URL ayarli degil (PostgreSQL modu icin zorunlu)');
-  // Connection string'e otomatik sslmode=require + family=4 (IPv4 zorlamasi) ekle.
-  // family=4 ozellikle Render gibi IPv6 zayif platformlarda Supabase'e baglanti icin kritik.
-  let finalCs = cs;
-  if (!/sslmode=/i.test(finalCs)) {
-    finalCs += (finalCs.includes('?') ? '&' : '?') + 'sslmode=require';
+  const sslOn = /supabase|render|sslmode=require|ssl=true/i.test(cs);
+
+  // Manuel URL parse
+  let host, port, database, user, password;
+  try {
+    const u = new URL(cs);
+    host = u.hostname;
+    port = parseInt(u.port || '5432', 10);
+    database = (u.pathname || '/postgres').replace(/^\//, '') || 'postgres';
+    user = decodeURIComponent(u.username || '');
+    password = decodeURIComponent(u.password || '');
+  } catch (e) {
+    throw new Error(`DATABASE_URL parse hatasi: ${e.message}`);
   }
-  if (!/family=/i.test(finalCs)) {
-    finalCs += '&family=4';
-  }
-  const sslOn = /supabase|render|sslmode=require/i.test(finalCs);
+
+  // IPv4 zorlamasi: DNS'i IPv4 ile coz ve IP'yi dogrudan host olarak kullan
+  // (pg 8.x'in "family" parametresini tanimamasi nedeniyle)
+  const ipv4 = await resolveIPv4(host);
+  console.log(`[Robink V2 PG] DNS: ${host} -> ${ipv4} (IPv4 zorlandi)`);
+
   pool = new Pool({
-    connectionString: finalCs,
+    host: ipv4,
+    port,
+    database,
+    user,
+    password,
     ssl: sslOn ? { rejectUnauthorized: false } : false,
     max: 10,
     idleTimeoutMillis: 30000,
