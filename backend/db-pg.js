@@ -14,14 +14,22 @@ function getPool() {
   if (pool) return pool;
   const cs = process.env.DATABASE_URL;
   if (!cs) throw new Error('DATABASE_URL ayarli degil (PostgreSQL modu icin zorunlu)');
+  // Connection string'e otomatik sslmode=require + family=4 (IPv4 zorlamasi) ekle.
+  // family=4 ozellikle Render gibi IPv6 zayif platformlarda Supabase'e baglanti icin kritik.
+  let finalCs = cs;
+  if (!/sslmode=/i.test(finalCs)) {
+    finalCs += (finalCs.includes('?') ? '&' : '?') + 'sslmode=require';
+  }
+  if (!/family=/i.test(finalCs)) {
+    finalCs += '&family=4';
+  }
+  const sslOn = /supabase|render|sslmode=require/i.test(finalCs);
   pool = new Pool({
-    connectionString: cs,
-    ssl: cs.includes('sslmode=require') || cs.includes('supabase') || cs.includes('render')
-      ? { rejectUnauthorized: false }
-      : false,
+    connectionString: finalCs,
+    ssl: sslOn ? { rejectUnauthorized: false } : false,
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    connectionTimeoutMillis: 15000,
   });
   pool.on('error', (e) => console.error('[Robink V2 PG] Pool hatasi:', e.message));
   return pool;
@@ -34,8 +42,22 @@ async function initSchema() {
     const path = require('path');
     const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
     const p = getPool();
-    await p.query(sql);
-    console.log('[Robink V2 PG] Schema basariyla yuklendi');
+    // Supabase / Cloud PG bazen ilk anda yavas cevap verir; 3 denemelik retry ekleyelim
+    let lastErr = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await p.query(sql);
+        console.log(`[Robink V2 PG] Schema basariyla yuklendi (deneme ${attempt})`);
+        return;
+      } catch (e) {
+        lastErr = e;
+        console.error(`[Robink V2 PG] Schema yukleme hatasi (deneme ${attempt}/3):`, e.message);
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 1500 * attempt));
+        }
+      }
+    }
+    throw lastErr;
   })().catch(e => {
     initPromise = null;
     throw e;
