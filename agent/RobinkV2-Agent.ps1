@@ -28,24 +28,59 @@ param(
     [int]$PollIntervalSeconds = 2,
     [string]$WinToolifyPath
 )
-# Varsayilan WinToolify yolu: ajan 'robink-saas\agent\' icinde,
-# WinToolify.ps1 'robink-saas\..\' (proje kokunde)
-if (-not $WinToolifyPath) {
+
+# ============================================================
+# Robink V2 katalog dosyasi (WinToolify.ps1) arama mantigi:
+#   1) -WinToolifyPath (kullanici verdiyse)
+#   2) Ajanin yaninda (ornek: %TEMP%\WinToolify.ps1)
+#   3) %LOCALAPPDATA%\RobinkV2-Catalog.ps1
+#   4) Proje kokunde WinToolify.ps1 (agent/../..)
+#   5) %LOCALAPPDATA%\WinToolify.ps1 (geriye uyumluluk)
+#   6) C:\Robink\WinToolify.ps1 (sabit kurulum)
+#   7) Masaustundeki "yeni program stress" klasoru
+# ============================================================
+$resolvedCatalog = $null
+if ($WinToolifyPath -and (Test-Path -LiteralPath $WinToolifyPath)) {
+    $resolvedCatalog = $WinToolifyPath
+} else {
     $scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    $WinToolifyPath = Join-Path (Split-Path -Parent (Split-Path -Parent $scriptDir)) 'WinToolify.ps1'
+    $candidates = @(
+        (Join-Path $scriptDir 'WinToolify.ps1'),
+        (Join-Path $scriptDir 'RobinkV2-Catalog.ps1'),
+        (Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'),
+        (Join-Path (Split-Path -Parent (Split-Path -Parent $scriptDir)) 'WinToolify.ps1'),
+        (Join-Path $env:LOCALAPPDATA 'WinToolify.ps1'),
+        'C:\Robink\WinToolify.ps1',
+        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'yeni program stress\WinToolify.ps1'),
+        (Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Desktop\yeni program stress\WinToolify.ps1')
+    )
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path -LiteralPath $c)) { $resolvedCatalog = $c; break }
+    }
 }
-if (-not (Test-Path -LiteralPath $WinToolifyPath)) {
-    Write-Host "  HATA: WinToolify.ps1 bulunamadi: $WinToolifyPath" -ForegroundColor Red
-    Write-Host "  -WinToolifyPath ile tam yol verin." -ForegroundColor Yellow
+if (-not $resolvedCatalog) {
+    Write-Host "  Robink V2 katalog dosyasi (WinToolify.ps1) bulunamadi." -ForegroundColor Red
+    Write-Host "  Aranan konumlar:" -ForegroundColor Yellow
+    foreach ($c in @(
+        (Join-Path (if ($PSScriptRoot) { $PSScriptRoot } else { '.' }) 'WinToolify.ps1'),
+        (Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'),
+        'C:\Robink\WinToolify.ps1',
+        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'yeni program stress\WinToolify.ps1')
+    )) { Write-Host "    - $c" -ForegroundColor Yellow }
+    Write-Host "  Cozumler:" -ForegroundColor Yellow
+    Write-Host "    1) RobinkV2-Agent.ps1 -WinToolifyPath 'C:\...\WinToolify.ps1'" -ForegroundColor Yellow
+    Write-Host "    2) Katalogu kopyalayin: Copy-Item 'C:\...\WinToolify.ps1' '$env:LOCALAPPDATA\RobinkV2-Catalog.ps1'" -ForegroundColor Yellow
     exit 1
 }
+$WinToolifyPath = $resolvedCatalog
+Write-Host "  Katalog: $WinToolifyPath" -ForegroundColor DarkCyan
 
 $ErrorActionPreference = 'Stop'
 
 # WinToolify.ps1'i script basinda yukle (global scope'a) - boylece
 # icindeki action scriptblock'lari Get-Translation, New-WtToolRow vs. fonksiyonlarini bulabilir.
 if (-not (Test-Path -LiteralPath $WinToolifyPath)) {
-    Write-Host "  HATA: WinToolify.ps1 bulunamadi: $WinToolifyPath" -ForegroundColor Red
+    Write-Host "  HATA: Katalog bulunamadi: $WinToolifyPath" -ForegroundColor Red
     exit 1
 }
 # Global scope'a yuklemek icin scope modifier ile
