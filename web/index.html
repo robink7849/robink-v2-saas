@@ -3130,7 +3130,10 @@ async function generatePairingCode() {
     state.pairingExpiresAt = data.expiresAt;
     $('#pairingCode').textContent = data.code;
     const serverUrl = window.location.origin;
-    const cmd = `powershell -ExecutionPolicy Bypass -Command "& { iwr '${serverUrl}/agent/RobinkV2-Agent.ps1' -OutFile \\"$env:TEMP\\Robink-Agent.ps1\\"; & \\"$env:TEMP\\Robink-Agent.ps1\\" -Server '${serverUrl}' -PairingCode ${data.code} -DeviceName '${state.user.username}-PC' }"`;
+    // PowerShell'de cift tirnak icinde cift tirnak "" ile escape edilir (PowerShell kurali)
+    // $env yerine $tempDir kullanarak degisken expand sorununu onleriz
+    const psContent = `$tempDir = [System.IO.Path]::GetTempPath(); iwr '${serverUrl}/agent/RobinkV2-Agent.ps1' -OutFile "$tempDir\\Robink-Agent.ps1"; & "$tempDir\\Robink-Agent.ps1" -Server '${serverUrl}' -PairingCode ${data.code} -DeviceName '${state.user.username}-PC'`;
+    const cmd = `powershell -ExecutionPolicy Bypass -Command "${psContent.replace(/"/g, '""')}"`;
     $('#pairingCmd').textContent = cmd;
     $('#pairingModal').classList.add('open');
     startPairingTimer();
