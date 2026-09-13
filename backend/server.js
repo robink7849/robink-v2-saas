@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'robink-v2-dev-secret-please-change';
 const USE_PG = !!process.env.DATABASE_URL;
 const PUBLIC_DIR = path.join(__dirname, '..', 'web');
+const AGENT_DIR  = path.join(__dirname, '..', 'agent');
 const PAIRING_TTL_MS = 1000 * 60 * 10; // 10 minutes
 const AGENT_OFFLINE_AFTER_MS = 1000 * 30; // 30 seconds without poll = offline
 
@@ -319,6 +320,14 @@ function serializeCmd(cmd) {
 // ---------- START ----------
 // Static frontend (sona koy ki API routes oncelikli olsun)
 app.use(express.static(PUBLIC_DIR));
+
+// Ajan dosyalarini serve et — kullanicilar tek satir komutla indirebilsin
+app.use('/agent', express.static(AGENT_DIR, {
+  setHeaders: (res, p) => {
+    if (p.endsWith('.ps1')) res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  },
+  fallthrough: true,
+}));
 
 (async () => {
   try {
