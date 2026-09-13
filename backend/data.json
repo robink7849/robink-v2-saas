@@ -1,0 +1,216 @@
+{
+  "users": [
+    {
+      "id": "8527cc2862f38abac6916c9e187285e4",
+      "username": "robink",
+      "password_hash": "$2a$08$Z9yroEXiU6zToI.FXIpk5.SoI7Th3kM4A9JYTFjwsJRtWwHUMqSAS",
+      "created_at": 1789321915997
+    },
+    {
+      "id": "9aef7f16ec156807c0f0b27203cf673b",
+      "username": "robin",
+      "password_hash": "$2a$08$tQsPxjlU.gESfem0DVz9cOC76xjXEM8kFssz.326iq2IUqgjQKMxS",
+      "created_at": 1789322715647
+    },
+    {
+      "id": "3e93cf5fce5fee42d310a618e648c79e",
+      "username": "deploytest",
+      "password_hash": "$2a$08$9Kd1dzH7HCCe86E0PUp6c.lxaq/kUvT2tPE.uU3ORStmplxN0qPaa",
+      "created_at": 1789326815322
+    }
+  ],
+  "devices": [
+    {
+      "id": "5bf952d18ac1bb044d9f4895e3f66dad",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "name": "Ev PC",
+      "token": "94a9f22b89eb17a966cb399acb07c84f",
+      "last_seen": 1789321937811,
+      "created_at": 1789321916097
+    },
+    {
+      "id": "be90f202b49135515f81dcf6af4ad504",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "name": "'Robink-PC'",
+      "token": "df324cf64e6614fd021656978ade4df2",
+      "last_seen": 1789322096516,
+      "created_at": 1789321992610
+    },
+    {
+      "id": "01a74a8bf15cba5fe47345e0356de152",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "name": "'Robink-PC'",
+      "token": "f8eb610142f65b1992651b2a0f30f47b",
+      "last_seen": 1789322292137,
+      "created_at": 1789322177443
+    },
+    {
+      "id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "name": "'Robink-PC'",
+      "token": "7292e1de0c29c3982f1d15a4d72396dc",
+      "last_seen": 1789329374363,
+      "created_at": 1789322294168
+    }
+  ],
+  "pairing_codes": [
+    {
+      "code": "G2L7EN",
+      "created_by": "8527cc2862f38abac6916c9e187285e4",
+      "created_at": 1789322098318,
+      "expires_at": 1789322698318,
+      "used_at": null,
+      "device_id": null
+    },
+    {
+      "code": "959JL9",
+      "created_by": "8527cc2862f38abac6916c9e187285e4",
+      "created_at": 1789322293491,
+      "expires_at": 1789322893491,
+      "used_at": 1789322294168,
+      "device_id": "678d2c9a1377e45a9e670053f415eefd"
+    }
+  ],
+  "commands": [
+    {
+      "id": "82580e234b9af7af6c5345b18f337e4e",
+      "device_id": "5bf952d18ac1bb044d9f4895e3f66dad",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 1,
+      "status": "done",
+      "output": "Bilgisayar Adi: TEST-PC\nEtkin Kullanici: TEST-USER",
+      "error": null,
+      "exit_code": 0,
+      "duration_ms": 145,
+      "created_at": 1789321916132,
+      "started_at": 1789321937811,
+      "finished_at": 1789321937851
+    },
+    {
+      "id": "a0c921b370fcd47f1649c2373057beb2",
+      "device_id": "be90f202b49135515f81dcf6af4ad504",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 10,
+      "status": "failed",
+      "output": "",
+      "error": "Oge bulunamadi",
+      "exit_code": null,
+      "duration_ms": null,
+      "created_at": 1789322014388,
+      "started_at": 1789322015107,
+      "finished_at": 1789322015151
+    },
+    {
+      "id": "057d433378618c93823205bd2192818a",
+      "device_id": "be90f202b49135515f81dcf6af4ad504",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 10,
+      "status": "pending",
+      "output": null,
+      "error": null,
+      "exit_code": null,
+      "duration_ms": null,
+      "created_at": 1789322104425,
+      "started_at": null,
+      "finished_at": null
+    },
+    {
+      "id": "b534d032f1bde417103cac1fb657fa78",
+      "device_id": "01a74a8bf15cba5fe47345e0356de152",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 10,
+      "status": "failed",
+      "output": "",
+      "error": "The term 'Get-Translation' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.",
+      "exit_code": null,
+      "duration_ms": 484,
+      "created_at": 1789322196840,
+      "started_at": 1789322197822,
+      "finished_at": 1789322199613
+    },
+    {
+      "id": "dd54603e2d8d5c44d4f7ce72defbb2ef",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 10,
+      "status": "done",
+      "output": "RAM: 19952 MB free of 32476 MB",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 525,
+      "created_at": 1789322364586,
+      "started_at": 1789322365401,
+      "finished_at": 1789322366008
+    },
+    {
+      "id": "27921374c050f259fa6e23d58947b094",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 1,
+      "status": "done",
+      "output": "Computer Name: DESKTOP-USGPGT7\nActive User: HOBBY",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 141,
+      "created_at": 1789322387585,
+      "started_at": 1789322388350,
+      "finished_at": 1789322388519
+    },
+    {
+      "id": "0bb54bdcc03c6bff37f8e40d45a8b8e8",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 4,
+      "status": "done",
+      "output": "**********************",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 4346,
+      "created_at": 1789322390622,
+      "started_at": 1789322391560,
+      "finished_at": 1789322395927
+    },
+    {
+      "id": "103e61998a874159a3d69a7a14dbd02a",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 18,
+      "status": "done",
+      "output": "C: - NTFS 794.6 GB free of 930.5 GB (85%)\nD: robink NTFS 703.6 GB free of 931.5 GB (76%)",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 1064,
+      "created_at": 1789322393644,
+      "started_at": 1789322396955,
+      "finished_at": 1789322398066
+    },
+    {
+      "id": "557298dde6c27a6831d8af3d419c691f",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 26,
+      "status": "done",
+      "output": "vEthernet (Default Switch)\n  IPv4    : 172.24.240.1/20\n  Gateway :\n  DNS     : IPv6 only\n\nWi-Fi\n  IPv4    : 192.168.0.199/24\n  Gateway : 192.168.0.1\n  DNS     : 94.140.14.14, 94.140.15.15\n\nBluetooth Ag Baglantisi\n  IPv4    : 169.254.130.246/16\n  Gateway :\n  DNS     : IPv6 only\n\nEthernet\n  IPv4    : 169.254.57.18/16\n  Gateway :\n  DNS     : IPv6 only",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 2413,
+      "created_at": 1789322396677,
+      "started_at": 1789322396955,
+      "finished_at": 1789322400516
+    },
+    {
+      "id": "7872cfd030d06a10f330498000b95d95",
+      "device_id": "678d2c9a1377e45a9e670053f415eefd",
+      "user_id": "8527cc2862f38abac6916c9e187285e4",
+      "item_n": 51,
+      "status": "done",
+      "output": "Explorer restarted.",
+      "error": null,
+      "exit_code": null,
+      "duration_ms": 459,
+      "created_at": 1789322399705,
+      "started_at": 1789322401528,
+      "finished_at": 1789322402073
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "robink-v2-saas-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Robink V2 SaaS backend - serves web UI + agent coordination",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:init": "node -e \"require('./db-pg').initSchema()\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.23.0"
+  }
+}

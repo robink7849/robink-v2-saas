@@ -1,0 +1,2757 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Robink V2 · Bilgi Bankası</title>
+<meta name="description" content="Robink V2 — Windows sistem bilgileri ve hızlı onarım menülerinin web rehberi." />
+<meta name="theme-color" content="#0a0e14" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg-0: #050810;
+  --bg-1: #0a0e14;
+  --bg-2: #0f1623;
+  --bg-3: #141d2e;
+  --bg-elev: #18243a;
+  --bg-hover: #1c2942;
+  --bg-selected: linear-gradient(90deg, rgba(56, 189, 248, 0.10), rgba(56, 189, 248, 0.04));
+  --bg-selected-solid: #15233e;
+
+  --line: #1a2332;
+  --line-soft: #131c2a;
+  --line-strong: #233248;
+
+  --text-1: #e8edf5;
+  --text-2: #b7c3d6;
+  --text-3: #7e8ca5;
+  --text-4: #54627a;
+  --text-5: #3b475c;
+
+  --cyan: #67e8f9;
+  --cyan-dim: #22d3ee;
+  --cyan-bg: rgba(34, 211, 238, 0.08);
+  --blue: #60a5fa;
+  --blue-bg: rgba(59, 130, 246, 0.10);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251, 191, 36, 0.10);
+  --red: #f87171;
+  --red-bg: rgba(248, 113, 113, 0.10);
+  --green: #4ade80;
+  --green-bg: rgba(74, 222, 128, 0.10);
+  --magenta: #e879f9;
+  --violet: #a78bfa;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.35);
+  --shadow-lg: 0 24px 60px rgba(0,0,0,.6), 0 8px 20px rgba(0,0,0,.45);
+  --shadow-glow: 0 0 24px rgba(34, 211, 238, 0.15);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', 'SF Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Inter', system-ui, sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --header-h: 56px;
+  --footer-h: 36px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-0);
+  color: var(--text-1);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle grid backdrop */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 211, 238, 0.08), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(99, 102, 241, 0.06), transparent 50%),
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+  color: var(--text-1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 10px;
+  border: 2px solid var(--bg-1);
+}
+::-webkit-scrollbar-thumb:hover { background: #2e4060; }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr var(--footer-h);
+  height: 100vh;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  background: rgba(10, 14, 20, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+}
+
+.brand-mark {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  overflow: hidden;
+  background: #f5f1e8;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), var(--shadow-glow);
+  flex-shrink: 0;
+}
+.brand-mark img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.brand-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.brand-text .accent { color: var(--cyan); }
+.brand-text .sub {
+  color: var(--text-4);
+  font-weight: 400;
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tabs {
+  display: flex;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.tab {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  border-radius: 6px;
+  transition: all 0.18s var(--ease-out);
+  letter-spacing: 0.2px;
+}
+.tab:hover { color: var(--text-1); }
+.tab.active {
+  background: var(--bg-elev);
+  color: var(--cyan);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.25);
+}
+.tab .count {
+  margin-left: 5px;
+  font-family: var(--font-mono);
+  color: var(--text-4);
+  font-size: 10px;
+}
+.tab.active .count { color: var(--cyan); }
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0 10px 0 32px;
+  transition: all 0.18s var(--ease-out);
+  min-width: 240px;
+}
+.search:focus-within {
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.10);
+}
+.search svg {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-4);
+  width: 14px; height: 14px;
+}
+.search input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 7px 0;
+  width: 100%;
+}
+.search input::placeholder { color: var(--text-4); }
+.search kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-3);
+  color: var(--text-3);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 6px;
+}
+
+.lang-toggle {
+  display: flex;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.lang-toggle button {
+  padding: 4px 9px;
+  border-radius: 5px;
+  color: var(--text-4);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.15s var(--ease-out);
+}
+.lang-toggle button.active {
+  background: var(--bg-elev);
+  color: var(--cyan);
+}
+
+/* ============================================================
+   MAIN GRID
+   ============================================================ */
+.main {
+  display: grid;
+  grid-template-columns: minmax(380px, 1.2fr) minmax(320px, 1fr);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================================
+   ITEM LIST
+   ============================================================ */
+.list-pane {
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 0 60px;
+  scroll-behavior: smooth;
+}
+
+.list-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 18px;
+}
+
+.group {
+  margin-bottom: 22px;
+  animation: fadeUp 0.4s var(--ease-out) both;
+}
+.group:nth-child(2) { animation-delay: 0.04s; }
+.group:nth-child(3) { animation-delay: 0.08s; }
+.group:nth-child(4) { animation-delay: 0.12s; }
+.group:nth-child(5) { animation-delay: 0.16s; }
+.group:nth-child(6) { animation-delay: 0.20s; }
+.group:nth-child(7) { animation-delay: 0.24s; }
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed rgba(34, 211, 238, 0.20);
+}
+.group-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--cyan);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.group-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  padding: 2px 7px;
+  background: var(--cyan-bg);
+  border-radius: 10px;
+  border: 1px solid rgba(34, 211, 238, 0.20);
+}
+.group-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.30), transparent);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin: 1px 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s var(--ease-out), transform 0.12s var(--ease-out);
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.item:hover {
+  background: var(--bg-hover);
+}
+.item.selected {
+  background: var(--bg-selected);
+  border-left-color: var(--cyan-dim);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.12);
+}
+.item.selected::before {
+  content: '▶';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cyan);
+  font-size: 8px;
+}
+.item.dim {
+  opacity: 0.32;
+}
+
+.item-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-4);
+  text-align: right;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.item.selected .item-num { color: var(--cyan); }
+
+.item-body { min-width: 0; }
+.item-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+.item-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.2px;
+}
+.item-meta .dur { color: var(--text-3); }
+
+.item-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-size: 9.5px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+}
+.badge.safe    { color: var(--green);  background: var(--green-bg);  border-color: rgba(74, 222, 128, 0.25); }
+.badge.caution { color: var(--yellow); background: var(--yellow-bg); border-color: rgba(251, 191, 36, 0.25); }
+.badge.advanced{ color: var(--red);    background: var(--red-bg);    border-color: rgba(248, 113, 113, 0.25); }
+.badge.write   { color: var(--magenta);background: rgba(232, 121, 249, 0.08); border-color: rgba(232, 121, 249, 0.25); }
+.badge.read    { color: var(--blue);   background: var(--blue-bg);   border-color: rgba(96, 165, 250, 0.20); }
+.badge.power   { color: var(--red);    background: var(--red-bg);    border-color: rgba(248, 113, 113, 0.30); }
+
+.item-type-icon {
+  color: var(--text-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* ============================================================
+   DETAIL PANE
+   ============================================================ */
+.detail-pane {
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse 100% 100% at 100% 0%, rgba(34, 211, 238, 0.04), transparent 50%),
+    var(--bg-1);
+  position: relative;
+}
+
+.detail-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--text-4);
+  padding: 40px;
+  text-align: center;
+}
+.detail-empty .glyph {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  color: var(--line-strong);
+  margin-bottom: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+.detail-empty .msg { font-size: 13px; }
+
+.detail {
+  max-width: 560px;
+  padding: 32px 32px 60px;
+  animation: detailIn 0.3s var(--ease-out);
+}
+
+@keyframes detailIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.detail-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--cyan);
+  font-weight: 600;
+  padding-top: 4px;
+  letter-spacing: 0.5px;
+}
+.detail-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--text-1);
+  line-height: 1.25;
+  flex: 1;
+}
+.detail-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+  margin-bottom: 16px;
+  letter-spacing: 0.3px;
+}
+.detail-breadcrumb .sep { color: var(--text-5); margin: 0 6px; }
+.detail-breadcrumb .here { color: var(--cyan); }
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text-3);
+  margin-top: 28px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.section-label::before {
+  content: '';
+  width: 8px; height: 1px;
+  background: var(--cyan);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.detail-text {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.65;
+  letter-spacing: -0.05px;
+}
+
+.cmd-block {
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.cmd-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.cmd-block-head .dots {
+  display: flex;
+  gap: 4px;
+}
+.cmd-block-head .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.cmd-copy {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  letter-spacing: 0.5px;
+  transition: all 0.15s var(--ease-out);
+}
+.cmd-copy:hover { color: var(--cyan); border-color: var(--cyan-dim); }
+.cmd-copy.copied { color: var(--green); border-color: rgba(74, 222, 128, 0.4); }
+.cmd-body {
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-1);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.cmd-body .kw   { color: var(--magenta); }
+.cmd-body .exe  { color: var(--cyan); }
+.cmd-body .flag { color: var(--yellow); }
+.cmd-body .arg  { color: var(--text-2); }
+.cmd-body .str  { color: var(--green); }
+.cmd-body .cmt  { color: var(--text-4); font-style: italic; }
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.fact {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.fact-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.fact-value {
+  font-size: 13px;
+  color: var(--text-1);
+  font-weight: 500;
+}
+
+.note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(251, 191, 36, 0.06);
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+.note.caution { background: rgba(251, 191, 36, 0.06); border-color: rgba(251, 191, 36, 0.25); }
+.note.advanced { background: rgba(248, 113, 113, 0.06); border-color: rgba(248, 113, 113, 0.25); }
+.note.info { background: rgba(96, 165, 250, 0.06); border-color: rgba(96, 165, 250, 0.25); }
+.note b { color: var(--yellow); font-weight: 600; }
+.note.advanced b { color: var(--red); }
+.note.info b { color: var(--blue); }
+
+/* ============================================================
+   RUN BUTTON & OUTPUT
+   ============================================================ */
+.run-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.20), rgba(99, 102, 241, 0.20));
+  border: 1px solid rgba(34, 211, 238, 0.40);
+  border-radius: var(--radius-md);
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.run-btn:hover {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.30), rgba(99, 102, 241, 0.30));
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.20);
+  transform: translateY(-1px);
+}
+.run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.run-btn.danger {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.20), rgba(251, 191, 36, 0.15));
+  border-color: rgba(248, 113, 113, 0.40);
+  color: var(--red);
+}
+.run-btn.danger:hover {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.30), rgba(251, 191, 36, 0.25));
+  border-color: var(--red);
+  box-shadow: 0 0 16px rgba(248, 113, 113, 0.20);
+}
+.run-btn .pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* (eski .server-state stilleri kaldirildi) */
+
+.output-panel {
+  margin-top: 14px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.output-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.output-head .meta { display: flex; gap: 12px; align-items: center; }
+.output-head .ok-tag   { color: var(--green); }
+.output-head .err-tag  { color: var(--red); }
+.output-head .cancel-tag { color: var(--yellow); }
+.output-body {
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-1);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 480px;
+  overflow-y: auto;
+  min-height: 60px;
+}
+.output-body.loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cyan);
+  font-style: italic;
+}
+.output-body .spinner {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.20);
+  border-top-color: var(--cyan);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.output-empty {
+  color: var(--text-4);
+  font-style: italic;
+  padding: 16px 18px;
+  background: var(--bg-0);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* ============================================================
+   AUTH GATE + DEVICE SIDEBAR + PAIRING DIALOG
+   ============================================================ */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(34, 211, 238, 0.10), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(99, 102, 241, 0.08), transparent 60%),
+    var(--bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.auth-card {
+  width: min(420px, 92vw);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+  animation: detailIn 0.4s var(--ease-out);
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.auth-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+.auth-sub {
+  color: var(--text-4);
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+.auth-field {
+  margin-bottom: 14px;
+}
+.auth-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-bottom: 6px;
+}
+.auth-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  transition: all 0.18s var(--ease-out);
+}
+.auth-input:focus {
+  outline: none;
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.10);
+}
+.auth-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--cyan-dim), #6366f1);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #051018;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.auth-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(34, 211, 238, 0.25);
+}
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.auth-switch {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-4);
+}
+.auth-switch a {
+  color: var(--cyan);
+  text-decoration: none;
+  cursor: pointer;
+}
+.auth-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(248, 113, 113, 0.10);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--red);
+  font-size: 12px;
+}
+
+/* DEVICE SIDEBAR */
+.device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out);
+}
+.device-pill:hover { border-color: var(--line-strong); color: var(--text-1); }
+.device-pill .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text-4);
+}
+.device-pill.online .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.device-pill.offline .dot { background: var(--text-5); }
+.device-pill .arrow { color: var(--text-4); font-size: 9px; }
+
+.device-menu {
+  position: absolute;
+  top: 100%; right: 0;
+  margin-top: 6px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  min-width: 240px;
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  display: none;
+}
+.device-menu.open { display: block; }
+.device-menu-item {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.device-menu-item:hover { background: var(--bg-hover); }
+.device-menu-item.active { color: var(--cyan); }
+.device-menu-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-4); }
+.device-menu-item.online .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.device-menu-divider { height: 1px; background: var(--line); margin: 6px 0; }
+.device-menu-item.add {
+  color: var(--cyan);
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+/* PAIRING DIALOG */
+.pairing-code {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: var(--cyan);
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--bg-0);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  margin: 16px 0 12px;
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+}
+.pairing-instr {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.pairing-instr code {
+  font-family: var(--font-mono);
+  background: var(--bg-3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--cyan);
+  font-size: 11px;
+}
+.pairing-timer {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* USER MENU */
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.user-pill:hover { border-color: var(--line-strong); color: var(--text-1); }
+.user-pill .avatar {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan-dim), #6366f1);
+  display: grid; place-items: center;
+  color: #051018;
+  font-weight: 800;
+  font-size: 10px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  background: rgba(10, 14, 20, 0.85);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+  letter-spacing: 0.2px;
+}
+
+.footer-left, .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.footer kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-3);
+  color: var(--text-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 1px 6px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.4);
+}
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+.no-results {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-4);
+  font-size: 13px;
+}
+.no-results .glyph {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--text-5);
+  margin-bottom: 10px;
+  letter-spacing: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .list-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail-pane {
+    max-height: 40vh;
+    border-top: 1px solid var(--line);
+  }
+  .search { min-width: 160px; }
+  .brand-text .sub { display: none; }
+}
+@media (max-width: 600px) {
+  .toolbar { gap: 6px; }
+  .search { display: none; }
+  .tabs .tab { padding: 5px 8px; }
+  .detail { padding: 22px 18px 40px; }
+  .detail-title { font-size: 19px; }
+}
+
+/* ============================================================
+   MOBILE SEARCH MODAL
+   ============================================================ */
+.search-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 16, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 100;
+}
+.search-modal.open { display: flex; }
+.search-modal-inner {
+  width: min(560px, 92vw);
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.search-modal-input {
+  width: 100%;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.search-modal-input::placeholder { color: var(--text-4); }
+.search-modal-results {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.search-modal-result {
+  padding: 10px 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.search-modal-result:hover, .search-modal-result.active {
+  background: var(--bg-hover);
+}
+.search-modal-result .num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+  min-width: 28px;
+}
+.search-modal-result mark {
+  background: rgba(34, 211, 238, 0.30);
+  color: var(--cyan);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+.search-modal-empty {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-4);
+  font-size: 13px;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elev);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s var(--ease-spring);
+  z-index: 200;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+<!-- AUTH GATE (initial) -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark"><img src="favicon.png" alt="Robink V2" /></div>
+      <div>
+        <div class="auth-title">Robink V2</div>
+        <div class="auth-sub">Windows sistem rehberi · SaaS</div>
+      </div>
+    </div>
+    <form id="authForm" autocomplete="on">
+      <div class="auth-field">
+        <label class="auth-label" for="authUsername">Kullanıcı adı</label>
+        <input class="auth-input" id="authUsername" type="text" autocomplete="username" required minlength="3" />
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="authPassword">Şifre</label>
+        <input class="auth-input" id="authPassword" type="password" autocomplete="current-password" required minlength="4" />
+      </div>
+      <button class="auth-btn" id="authBtn" type="submit">GİRİŞ YAP</button>
+      <div class="auth-error" id="authError" style="display:none"></div>
+    </form>
+    <div class="auth-switch">
+      <span id="authModeText">Hesabın yok mu?</span>
+      <a id="authModeToggle">Kayıt ol</a>
+    </div>
+  </div>
+</div>
+
+<!-- PAIRING DIALOG -->
+<div class="search-modal" id="pairingModal">
+  <div class="search-modal-inner" style="max-width: 480px">
+    <div style="padding: 24px 24px 20px;">
+      <div style="font-size:18px;font-weight:600;letter-spacing:-0.3px;margin-bottom:4px">Yeni Cihaz Eşle</div>
+      <div style="font-size:12px;color:var(--text-4)">Bu kodu ajanın kurulacağı PC'de çalıştır.</div>
+      <div class="pairing-code" id="pairingCode">------</div>
+      <div class="pairing-timer" id="pairingTimer">10:00 kaldı</div>
+      <div class="pairing-instr">
+        Hedef PC'de PowerShell'i aç ve şunu çalıştır:
+        <div style="margin-top: 8px; padding: 10px; background: var(--bg-0); border-radius: var(--radius-sm); border: 1px solid var(--line); font-family: var(--font-mono); font-size: 11.5px; color: var(--cyan); white-space: pre-wrap;" id="pairingCmd">...</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+        <button class="cmd-copy" id="copyPairingCmd">KOMUTU KOPYALA</button>
+        <button class="cmd-copy" id="closePairing" style="color:var(--text-2)">KAPAT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark"><img src="favicon.png" alt="Robink V2" /></div>
+      <div class="brand-text">
+        <span class="accent">Robink V2</span> · Bilgi Bankası
+        <span class="sub">Windows Sistem Rehberi</span>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-mode="info">Bilgi <span class="count">50</span></button>
+        <button class="tab" data-mode="action">Hızlı Onarım <span class="count">40</span></button>
+        <button class="tab" data-mode="all">Tümü <span class="count">90</span></button>
+      </div>
+      <label class="search" aria-label="Ara">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="text" placeholder="Ara…  (ad, komut, açıklama)" autocomplete="off" spellcheck="false" />
+        <kbd>/</kbd>
+      </label>
+      <div class="lang-toggle">
+        <button class="active" data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <div style="position:relative">
+        <div class="device-pill" id="devicePill">
+          <span class="dot"></span>
+          <span id="devicePillText">Cihaz seç…</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="device-menu" id="deviceMenu"></div>
+      </div>
+      <div class="user-pill" id="userPill" title="Çıkış">
+        <span class="avatar" id="userAvatar">?</span>
+        <span id="userName"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="list-pane" id="listPane">
+      <div class="list-inner" id="list"></div>
+    </div>
+    <aside class="detail-pane" id="detailPane"></aside>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span><kbd>↑</kbd><kbd>↓</kbd> / <kbd>j</kbd><kbd>k</kbd> gez</span>
+      <span><kbd>Enter</kbd> detay</span>
+      <span><kbd>1</kbd>–<kbd>9</kbd> atla</span>
+      <span><kbd>Tab</kbd> bölüm</span>
+    </div>
+    <div class="footer-right">
+      <span><kbd>r</kbd> çalıştır</span>
+      <span><kbd>c</kbd> kopyala</span>
+      <span><kbd>/</kbd> ara</span>
+      <span><kbd>t</kbd> dil</span>
+      <span><kbd>?</kbd> yardım</span>
+    </div>
+  </footer>
+</div>
+
+<div class="search-modal" id="searchModal">
+  <div class="search-modal-inner">
+    <input class="search-modal-input" id="modalSearch" placeholder="Bir şey yazın…" autocomplete="off" />
+    <div class="search-modal-results" id="modalResults"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Komut kopyalandı</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const GROUPS = {
+  info: [
+    { k: 'systemSummary', tr: 'Sistem Özeti', en: 'System Summary' },
+    { k: 'hardware',      tr: 'Donanım',       en: 'Hardware' },
+    { k: 'storage',       tr: 'Depolama',      en: 'Storage' },
+    { k: 'network',       tr: 'Ağ',            en: 'Network' },
+    { k: 'software',      tr: 'Yazılım ve Başlangıç', en: 'Software & Startup' },
+    { k: 'security',      tr: 'Güvenlik',      en: 'Security' },
+    { k: 'events',        tr: 'Olaylar ve Tanı', en: 'Events & Diagnostics' },
+  ],
+  action: [
+    { k: 'quickFixes',     tr: 'Hızlı Düzeltmeler', en: 'Quick Fixes' },
+    { k: 'windowsRepair',  tr: 'Windows Onarımı',   en: 'Windows Repair' },
+    { k: 'networkRepair',  tr: 'Ağ Onarımı',        en: 'Network Repair' },
+    { k: 'cleanupDisk',    tr: 'Temizlik ve Disk',  en: 'Cleanup & Disk' },
+    { k: 'software',       tr: 'Yazılım',           en: 'Software' },
+    { k: 'backupReports',  tr: 'Yedekleme ve Rapor', en: 'Backup & Reports' },
+    { k: 'powerSession',   tr: 'Güç ve Oturum',     en: 'Power & Session' },
+  ],
+};
+
+const ITEMS = [
+  /* ============ BİLGİ ARAÇLARI ============ */
+  { n:1,  mode:'info', g:'systemSummary', tr:'Bilgisayar ve Kullanıcı Adını Göster', en:'Show Computer and User Name',
+    cmd:'$env:COMPUTERNAME  +  $env:USERNAME',
+    dur:null, risk:null, type:'read',
+    what:'Bilgisayarın adı ve o anda oturum açmış kullanıcı.',
+    out:'Bilgisayar adı, aktif kullanıcı, BIOS seri numarası, Windows lisans özeti.' },
+
+  { n:2,  mode:'info', g:'systemSummary', tr:'Windows Versiyonunu Göster', en:'Show Windows Version',
+    cmd:'Get-WmiObject Win32_OperatingSystem  |  winver.exe',
+    dur:null, risk:null, type:'read',
+    what:'Windows sürümü, derleme numarası ve mimari (x64 / ARM).',
+    out:'Caption, DisplayVersion, BuildNumber, OSArchitecture. Ayrıca winver penceresini açar.' },
+
+  { n:3,  mode:'info', g:'systemSummary', tr:'Windows kurulum ve sürüm geçmişi', en:'Windows install and upgrade history',
+    cmd:'HKLM:\\SYSTEM\\Setup\\Source OS*',
+    dur:null, risk:null, type:'read',
+    what:'İlk kurulum tarihi, mevcut sürüm ve geçmişteki feature upgrade’lerin listesi.',
+    out:'Tarih-sıralı liste: her sürüm için tarih + "Windows X Pro - 22H2 - Build …".' },
+
+  { n:4,  mode:'info', g:'systemSummary', tr:'Sistem Bilgilerini Listele', en:'Get System Information',
+    cmd:'systeminfo',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'systeminfo komutunun tam çıktısı.',
+    out:'OS adı, sürüm, kurulum tarihi, son açılış, RAM, ağ kartları, etki alanı, hotfix sayısı.' },
+
+  { n:5,  mode:'info', g:'systemSummary', tr:'Windows Lisans Durumunu Göster', en:'Show Windows License Status',
+    cmd:'cscript slmgr.vbs /xpr  &  cscript slmgr.vbs /dlv',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Windows lisansının etkinleştirme durumu ve detayları.',
+    out:'/xpr → "bilgisayar kalıcı olarak etkin" veya kalan süre. /dlv → kanal, kısmi ürün anahtarı, durum.' },
+
+  { n:6,  mode:'info', g:'systemSummary', tr:'Bekleyen yeniden başlatma', en:'Pending restart check',
+    cmd:'HKLM:\\…\\RebootPending, RebootRequired, ComputerName',
+    dur:null, risk:null, type:'read',
+    what:'Windows’un yeniden başlatılmayı bekleyip beklemediği ve neden (CBS, Windows Update, bilgisayar adı değişikliği).',
+    out:'Evet/Hayır + sebep listesi + PendingFileRenameOperations sayısı.' },
+
+  { n:7,  mode:'info', g:'systemSummary', tr:'Saat kaynağı ve senkronizasyon', en:'Time source and sync status',
+    cmd:'w32tm /query /source  &  w32tm /query /status',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'W32Time hizmeti durumu, zaman kaynağı, son senkronizasyon ofseti.',
+    out:'Yerel saat, UTC, saat dilimi, NTP kaynağı (örn. time.windows.com), ofset (sn).' },
+
+  { n:8,  mode:'info', g:'systemSummary', tr:'Çalışma süresi ve kapanma geçmişi', en:'Uptime and shutdown history',
+    cmd:'Get-WinEvent -LogName System -Id 1074,6005,6006',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Son açılış zamanı, uptime, son 8 kapat/tekrar başlat olayı (Event 1074/6005/6006).',
+    out:'LastBootUpTime + "X gün Y sa Z dk" + tarih-sıralı kapatma kayıtları.' },
+
+  { n:9,  mode:'info', g:'hardware', tr:'Donanım Özeti (CPU / RAM / GPU sensörleri)', en:'Hardware Summary',
+    cmd:'Get-WmiObject Win32_*  +  Get-WmiObject MSAcpi_ThermalZoneTemperature',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'Bilgisayar+seri+lisans + anlık sensör verileri (CPU/GPU sıcaklık, fan RPM).',
+    out:'Bilgisayar özeti bloğu + sıcaklık satırları (varsa).' },
+
+  { n:10, mode:'info', g:'hardware', tr:'RAM Kullanımını Göster', en:'Show RAM Usage',
+    cmd:'Get-WmiObject Win32_OperatingSystem',
+    dur:null, risk:null, type:'read',
+    what:'Toplam ve boş fiziksel bellek.',
+    out:'"Boş / Toplam MB" formatında tek satır.' },
+
+  { n:11, mode:'info', g:'hardware', tr:'RAM modülleri ve boş slotlar', en:'Memory modules and free slots',
+    cmd:'Get-WmiObject Win32_PhysicalMemory + Win32_PhysicalMemoryArray',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Her RAM modülünün kapasitesi, hızı, üreticisi + anakart üzerindeki boş slot sayısı.',
+    out:'Modül tablosu + "X kullanılan / Y toplam slot" satırı.' },
+
+  { n:12, mode:'info', g:'hardware', tr:'Anakart ve BIOS bilgisi', en:'Motherboard and BIOS',
+    cmd:'Get-WmiObject Win32_BaseBoard, Win32_BIOS',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Anakart üreticisi/modeli + BIOS versiyonu ve yayın tarihi.',
+    out:'Manufacturer, Product, Version, ReleaseDate.' },
+
+  { n:13, mode:'info', g:'hardware', tr:'CPU Bilgilerini Göster', en:'Show CPU Info',
+    cmd:'Get-WmiObject Win32_Processor',
+    dur:null, risk:null, type:'read',
+    what:'İşlemci adı, çekirdek, mantıksal işlemci, max saat hızı.',
+    out:'Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed listesi.' },
+
+  { n:14, mode:'info', g:'hardware', tr:'Ekran kartı ve sürücü detayları', en:'GPU and display driver details',
+    cmd:'Get-WmiObject Win32_VideoController, Win32_PnPSignedDriver',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'GPU adı, VRAM, sürücü versiyonu ve tarihi.',
+    out:'GPU başına: Name, AdapterRAM, DriverVersion, DriverDate.' },
+
+  { n:15, mode:'info', g:'hardware', tr:'Pil sağlık raporu', en:'Battery health report',
+    cmd:'powercfg /batteryreport /output battery.html',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'powercfg /batteryreport çıktısının özeti (tasarım kapasitesi, son doluluk, döngü sayısı).',
+    out:'"Tasarım X mWh / Son dolu Y mWh / Döngü Z" satırları + HTML rapor kaydı.' },
+
+  { n:16, mode:'info', g:'hardware', tr:'Sorunlu aygıtlar', en:'Problem devices',
+    cmd:'Get-WmiObject Win32_PnPEntity | Where-Object ConfigManagerErrorCode -ne 0',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'ConfigManagerErrorCode ≠ 0 olan aygıtlar (yani sürücü hatası olan).',
+    out:'Her sorunlu aygıt için: ad, hata kodu, açıklama.' },
+
+  { n:17, mode:'info', g:'hardware', tr:'Yazıcı Durumunu Göster', en:'Show Printer Status',
+    cmd:'Get-Printer',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Yüklü yazıcılar, durumları ve port adları.',
+    out:'Name, PrinterStatus, DriverName, PortName tablosu.' },
+
+  { n:18, mode:'info', g:'storage', tr:'Depolama Durumunu Göster', en:'Show Storage Status',
+    cmd:'Get-Volume, Get-PhysicalDisk',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Tüm disk bölümlerinin boyutu, boş alan, dosya sistemi.',
+    out:'Sürücü harfine göre: DriveLetter, Size, FreeSpace, FileSystem.' },
+
+  { n:19, mode:'info', g:'storage', tr:'Disk Durumunu Kontrol Et', en:'Check Disk Status',
+    cmd:'Get-PhysicalDisk | Format-Table FriendlyName, MediaType, HealthStatus, …',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Her fiziksel diskin sağlık durumu (SMART) ve türü (HDD/SSD/NVMe).',
+    out:'FriendlyName, MediaType, HealthStatus, OperationalStatus, Size.' },
+
+  { n:20, mode:'info', g:'storage', tr:'En büyük klasörler', en:'Largest folders',
+    cmd:'Get-ChildItem -Recurse | Group-Object Directory | Sort Count',
+    dur:'~30 sn', risk:'caution', type:'read',
+    what:'Her sürücüdeki en büyük klasörlerin dosya sayısı ve toplam boyutu.',
+    out:'Path, FileCount, TotalSize tablosu (büyükten küçüğe).' },
+
+  { n:21, mode:'info', g:'storage', tr:'En büyük dosyalar', en:'Largest files',
+    cmd:'Get-ChildItem -File -Recurse | Sort Length -Descending | Select -First 100',
+    dur:'~60 sn', risk:'caution', type:'read',
+    what:'Sistemdeki en büyük 100 dosya (yol ve boyut).',
+    out:'Path, Size (Format-WtByteSize) listesi.' },
+
+  { n:22, mode:'info', g:'storage', tr:'WinSxS bileşen deposu analizi (30-120 sn)', en:'Component store analysis',
+    cmd:'DISM /Online /Cleanup-Image /AnalyzeComponentStore',
+    dur:'30-120 sn', risk:'caution', type:'read',
+    what:'WinSxS klasörünün gerçek boyutu ve temizlenebilir miktarı.',
+    out:'"WinSxS toplam / Temizlenebilir / Önerilen temizlik" satırları.' },
+
+  { n:23, mode:'info', g:'storage', tr:'Geri yükleme noktaları ve gölge depo', en:'Restore points and shadow storage',
+    cmd:'vssadmin list shadowstorage',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Sistem geri yükleme noktaları için ayrılan disk alanı.',
+    out:'Shadow Copy Storage bilgisi + kullanılan/tahsis alan.' },
+
+  { n:24, mode:'info', g:'storage', tr:'Disk ve bölüm düzeni', en:'Disk and partition layout',
+    cmd:'Get-Disk + Get-Partition',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Her disk için partition tablosu, stil (GPT/MBR), boyut, harf.',
+    out:'DiskNo, PartitionStyle, OperationalStatus, Size.' },
+
+  { n:25, mode:'info', g:'storage', tr:'Disk Hatalarını Tara (chkdsk, uzun sürebilir)', en:'Scan Hard Disk',
+    cmd:'chkdsk $env:SystemDrive /scan',
+    dur:'~5-30 dk', risk:null, type:'read',
+    what:'Sistem sürücüsündeki dosya sistemi hatalarını tarar (salt okunur).',
+    out:'chkdsk çıktısı: "Windows has scanned the file system…" + bulunan hata sayısı.' },
+
+  { n:26, mode:'info', g:'network', tr:'IP yapılandırması özeti', en:'IP configuration summary',
+    cmd:'Get-WmiObject Win32_NetworkAdapterConfiguration | Where IPEnabled',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Aktif adaptörlerin IP, subnet, gateway, DNS özeti.',
+    out:'Adaptör adı + IPAddress, SubnetMask, DefaultGateway, DNSServerSearchOrder.' },
+
+  { n:27, mode:'info', g:'network', tr:'Ağ adaptörleri ve bağlantı hızı', en:'Network adapters and link speed',
+    cmd:'Get-NetAdapter',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Tüm ağ adaptörleri, durum, link hızı, MAC.',
+    out:'Name, Status, LinkSpeed, MacAddress tablosu.' },
+
+  { n:28, mode:'info', g:'network', tr:'Kablosuz bağlantı detayları', en:'Wi-Fi link details and signal',
+    cmd:'netsh wlan show interfaces',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Aktif Wi-Fi bağlantısının SSID, sinyal, kanal, hız.',
+    out:'SSID, Signal, Channel, Receive/Transmit rate.' },
+
+  { n:29, mode:'info', g:'network', tr:'Wi-Fi Şifresini Göster', en:'Show Wi-Fi Password',
+    cmd:'netsh wlan show profile name="X" key=clear',
+    dur:'~5 sn', risk:'caution', type:'read',
+    what:'Belirli bir kayıtlı Wi-Fi profilinin açık metin şifresi. (Yönetici gerekir.)',
+    out:'SSID + "Key Content : şifre".' },
+
+  { n:30, mode:'info', g:'network', tr:'Ağ profili ve güvenlik duvarı durumu', en:'Network profile and firewall state',
+    cmd:'Get-NetConnectionProfile  +  Get-NetFirewallProfile',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Ağ konumu (Public/Private) + güvenlik duvarı profillerinin açık/kapalı durumu.',
+    out:'Name, NetworkCategory, Connectivity; Firewall Enabled state.' },
+
+  { n:31, mode:'info', g:'network', tr:'Dinlenen portlar ve programları', en:'Listening ports',
+    cmd:'Get-NetTCPConnection -State Listen',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Yerel olarak açık (dinlenen) TCP portları ve sahip process.',
+    out:'LocalAddress:Port + OwningProcess (PID).' },
+
+  { n:32, mode:'info', g:'network', tr:'Açık bağlantılar ve programları', en:'Active connections',
+    cmd:'Get-NetTCPConnection -State Established',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Açık (kurulmuş) TCP bağlantıları ve karşı uç.',
+    out:'Yerel/Hedef IP:Port + OwningProcess.' },
+
+  { n:33, mode:'info', g:'network', tr:'Hosts dosyası içeriği', en:'Hosts file contents',
+    cmd:'Get-Content $env:SystemRoot\\System32\\drivers\\etc\\hosts',
+    dur:null, risk:'caution', type:'read',
+    what:'%SystemRoot%\\System32\\drivers\\etc\\hosts dosyasının tam içeriği.',
+    out:'Tüm satırlar (IP → hostname eşlemeleri).' },
+
+  { n:34, mode:'info', g:'network', tr:'İnternet bağlantı testi', en:'Internet connectivity test',
+    cmd:'Test-NetConnection -ComputerName 1.1.1.1,8.8.8.8,example.com',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'Birden fazla hedefe ping + port 443 testi ile internet erişimi.',
+    out:'Ping süreleri + TcpTestSucceeded.' },
+
+  { n:35, mode:'info', g:'network', tr:'DNS çözümleme testi', en:'DNS resolution test',
+    cmd:'Resolve-DnsName example.com',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Belirli bir hostname için DNS çözümleme süresi ve IP.',
+    out:'Name + IPAddress + QueryType.' },
+
+  { n:36, mode:'info', g:'network', tr:'Tüm IP Yapılandırmasını Göster', en:'Show Full IP Config',
+    cmd:'ipconfig /all',
+    dur:null, risk:null, type:'read',
+    what:'Tüm adaptörler için tam IP yapılandırması.',
+    out:'Her adaptörün fiziksel adresi, DHCP, DNS, WINS, MTU, süreleri.' },
+
+  { n:37, mode:'info', g:'software', tr:'Kurulu programlar', en:'Installed programs',
+    cmd:'Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'Kurulu tüm programların adı, versiyonu, yayıncısı, kurulum tarihi.',
+    out:'DisplayName, DisplayVersion, Publisher, InstallDate tablosu.' },
+
+  { n:38, mode:'info', g:'software', tr:'Başlangıç programları', en:'Startup programs',
+    cmd:'Get-CimInstance Win32_StartupCommand',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Açılışta otomatik çalışan programlar (Registry + Startup folder).',
+    out:'Name, Command, Location, User.' },
+
+  { n:39, mode:'info', g:'software', tr:'Microsoft dışı zamanlanmış görevler', en:'Non-Microsoft scheduled tasks',
+    cmd:'Get-ScheduledTask | Where { $_.State -eq "Ready" -and $_.TaskPath -notmatch "Microsoft" }',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Microsoft olmayan zamanlanmış görevlerin listesi.',
+    out:'TaskName, State, TaskPath.' },
+
+  { n:40, mode:'info', g:'software', tr:'Kurulu Windows güncellemeleri', en:'Installed Windows updates',
+    cmd:'Get-HotFix',
+    dur:'~10 sn', risk:null, type:'read',
+    what:'Yüklü Windows update hotfixlerinin listesi (KB numaraları).',
+    out:'HotFixID, Description, InstalledOn, InstalledBy.' },
+
+  { n:41, mode:'info', g:'security', tr:'Windows Defender durumu', en:'Defender status',
+    cmd:'Get-MpComputerStatus',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Defender’ın açık/kapalı durumu, imza versiyonu, son tarama.',
+    out:'AntivirusEnabled, RealTimeProtectionEnabled, AntivirusSignatureLastUpdated.' },
+
+  { n:42, mode:'info', g:'security', tr:'Güvenli Önyükleme ve TPM durumu', en:'Secure Boot and TPM status',
+    cmd:'Confirm-SecureBootUEFI  +  Get-Tpm',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Secure Boot aktif mi, TPM var mı ve hazır mı.',
+    out:'SecureBoot: True/False + TpmPresent, TpmReady, ManufacturerVersion.' },
+
+  { n:43, mode:'info', g:'security', tr:'Yönetici grubu üyeleri', en:'Local administrators',
+    cmd:'Get-LocalGroupMember Administrators',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Yerel Administrators grubundaki üyeler.',
+    out:'Name, ObjectClass, PrincipalSource tablosu.' },
+
+  { n:44, mode:'info', g:'security', tr:'Kullanıcı Hesaplarını Listele', en:'List User Accounts',
+    cmd:'Get-LocalUser',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'Yerel kullanıcı hesapları, etkin mi, parola ayarı.',
+    out:'Name, Enabled, LastLogon tablosu.' },
+
+  { n:45, mode:'info', g:'security', tr:'Güvenlik yapılandırması (UAC, RDP, WinRM)', en:'Security configuration',
+    cmd:'HKLM:\\…\\ConsentPromptBehaviorAdmin, fDenyTSConnections, WinRM\\Service\\Enable',
+    dur:'~3 sn', risk:null, type:'read',
+    what:'UAC seviyesi, Uzak Masaüstü açık mı, WinRM etkin mi.',
+    out:'UAC: Seviye (0-4), RDP: Açık/Kapalı, WinRM: Çalışıyor/Durdurulmuş.' },
+
+  { n:46, mode:'info', g:'events', tr:'Sistem Sağlık Raporu', en:'System Health Report',
+    cmd:'perfmon /report  →  HTML',
+    dur:'~60 sn', risk:null, type:'read',
+    what:'Windows’un 60 saniyelik performans + sistem raporu (HTML).',
+    out:'SRDC.html + özet: CPU/RAM/Disk bottleneck ve uyarılar.' },
+
+  { n:47, mode:'info', g:'events', tr:'Son sistem hataları', en:'Recent system errors',
+    cmd:'Get-WinEvent -FilterHashtable @{LogName="System"; Level=2} -MaxEvents 20',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Son 20 kritik/hata System olayı.',
+    out:'TimeCreated, ProviderName, Id, LevelDisplayName, Message.' },
+
+  { n:48, mode:'info', g:'events', tr:'Mavi ekran geçmişi', en:'Blue screen history',
+    cmd:'Get-WinEvent -FilterHashtable @{LogName="System"; Id=1001,6008,41}',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Geçmişteki BSOD (mavi ekran) olayları + hata kodu.',
+    out:'Tarih + EventId + "BugcheckCode" veya "ProcessName".' },
+
+  { n:49, mode:'info', g:'events', tr:'Disk hata olayları', en:'Disk error events',
+    cmd:'Get-WinEvent -LogName System -ProviderName disk,ntfs,storahci',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Disk/ntfs kaynaklı hata uyarıları (donanım sorunu işareti).',
+    out:'TimeCreated, ProviderName, Id, Message (son 20).' },
+
+  { n:50, mode:'info', g:'events', tr:'En çok bellek kullanan işlemler', en:'Top processes by memory',
+    cmd:'Get-Process | Sort WorkingSet64 -Descending | Select -First 20',
+    dur:'~5 sn', risk:null, type:'read',
+    what:'Bellek kullanımına göre ilk 20 çalışan işlem.',
+    out:'Name, Id, WorkingSet (MB), CPU.' },
+
+  /* ============ HIZLI ONARIM ============ */
+  { n:51, mode:'action', g:'quickFixes', tr:'Windows Gezgini\'ni Yeniden Başlat', en:'Restart Windows Explorer',
+    cmd:'Stop-Process explorer; Start-Process explorer',
+    dur:'~3 sn', risk:null, type:'write',
+    what:'explorer.exe sürecini öldürür ve yeniden başlatır (taskbar, masaüstü sıfırlanır).',
+    out:'"Gezgin yeniden başlatıldı" veya hata mesajı.' },
+
+  { n:52, mode:'action', g:'quickFixes', tr:'Başlat menüsünü onar', en:'Repair the Start menu',
+    cmd:'Get-AppxPackage -Name Microsoft.Windows.ShellExperienceHost | Reset',
+    dur:'~10 sn', risk:'caution', type:'write',
+    what:'Başlat menüsü / arama çubuğu bozulduğunda ShellExperienceHost paketini sıfırlar.',
+    out:'İşlem tamamlandı (çıktı yok, sonuç ekranda).' },
+
+  { n:53, mode:'action', g:'quickFixes', tr:'Simge ve küçük resim önbelleğini yenile', en:'Rebuild icon and thumbnail caches',
+    cmd:'Remove-Item iconcache_*.db, thumbcache_*.db; ie4uinit.exe -show',
+    dur:'~15 sn', risk:'caution', type:'write',
+    what:'Gezgin’deki bozuk simgeleri düzeltmek için önbelleği siler.',
+    out:'Önbellek dosyaları silindi + Gezgin yeniden başlatılır.' },
+
+  { n:54, mode:'action', g:'quickFixes', tr:'Ses hizmetlerini yeniden başlat', en:'Restart audio services',
+    cmd:'Restart-Service Audiosrv, AudioEndpointBuilder',
+    dur:'~5 sn', risk:'safe', type:'write',
+    what:'Windows Audio hizmetini durdurup başlatır. Ses kesildiğinde ilk deneme.',
+    out:'İki hizmet "Running" durumuna döner.' },
+
+  { n:55, mode:'action', g:'quickFixes', tr:'Yazıcıyı Yeniden Başlat', en:'Restart Printer',
+    cmd:'Restart-Service Spooler',
+    dur:'~5 sn', risk:null, type:'write',
+    what:'Yazdırma kuyruğu hizmetini yeniden başlatır.',
+    out:'"Eylem tamamlandı".' },
+
+  { n:56, mode:'action', g:'quickFixes', tr:'Yazıcı Kuyruğunu Temizle', en:'Clear Print Queue',
+    cmd:'Stop Spooler; Remove spool\\PRINTERS\\*; Start Spooler',
+    dur:'~10 sn', risk:'caution', type:'write',
+    what:'Tüm bekleyen yazdırma işlerini siler. Yazıcı takılı kaldığında kullanılır.',
+    out:'"Yazıcı kuyruğu temizlendi".' },
+
+  { n:57, mode:'action', g:'quickFixes', tr:'Yanıt vermeyen uygulamaları kapat', en:'Close not-responding apps',
+    cmd:'Get-Process | Where {$_.Responding -eq $false} | Stop-Process -Force',
+    dur:'~5 sn', risk:'caution', type:'write',
+    what:'Donmuş uygulamaları zorla kapatır (veri kaybı riski).',
+    out:'Kapatılan süreçlerin listesi.' },
+
+  { n:58, mode:'action', g:'quickFixes', tr:'Belleği Boşalt', en:'Free Memory',
+    cmd:'[GC]::Collect(); Clear-WmiCache',
+    dur:'~10 sn', risk:null, type:'write',
+    what:'Çalışan setleri trimleyerek boş RAM miktarını artırır.',
+    out:'Önce/sonra boş bellek miktarları.' },
+
+  { n:59, mode:'action', g:'windowsRepair', tr:'Sistem Dosyalarını Onar (sfc, 5-15 dk)', en:'Repair Windows System Files',
+    cmd:'sfc /scannow',
+    dur:'5-15 dk', risk:null, type:'write',
+    what:'Windows kritik sistem dosyalarını doğrular ve bozuk olanları onarır. Admin gerekir.',
+    out:'"Windows Resource Protection found integrity violations" + onarım raporu.' },
+
+  { n:60, mode:'action', g:'windowsRepair', tr:'Bileşen Deposunu Onar (DISM, 10-30 dk)', en:'Repair Component Store',
+    cmd:'DISM /Online /Cleanup-Image /RestoreHealth',
+    dur:'10-30 dk', risk:null, type:'write',
+    what:'Windows Update kaynak bileşen deposunu onarır. SFC’den sonra önerilir. Admin gerekir.',
+    out:'"The restore operation completed successfully" veya hata.' },
+
+  { n:61, mode:'action', g:'windowsRepair', tr:'Windows Update bileşenlerini sıfırla (2-5 dk)', en:'Reset Windows Update components',
+    cmd:'net stop wuauserv; rmdir C:\\Windows\\SoftwareDistribution; net start wuauserv',
+    dur:'2-5 dk', risk:'advanced', type:'write',
+    what:'Windows Update hizmetini durdurup SoftwareDistribution klasörünü siler (Download cache).',
+    out:'Update agent sıfırlandı, sonraki kontrol yeni içerik çekecek.' },
+
+  { n:62, mode:'action', g:'windowsRepair', tr:'Arama dizinini yeniden oluştur', en:'Rebuild Search Index',
+    cmd:'Stop-Service WSearch; Remove-Item indexing store; Start WSearch',
+    dur:'~30 sn + arka plan indeksleme', risk:'caution', type:'write',
+    what:'Windows Search indeksini siler ve yeniden oluşturulmasını başlatır.',
+    out:'İndeksleme hizmeti başladı (arka planda devam eder).' },
+
+  { n:63, mode:'action', g:'windowsRepair', tr:'WMI deposunu doğrula ve onar', en:'Verify and repair WMI repository',
+    cmd:'winmgmt /verifyrepository  +  winmgmt /salvagerepository',
+    dur:'~15 sn', risk:'caution', type:'write',
+    what:'WMI (Windows Management Instrumentation) deposunu doğrular ve bozuksa kurtarır.',
+    out:'"Repository is consistent" veya kurtarma sonucu.' },
+
+  { n:64, mode:'action', g:'windowsRepair', tr:'Güç planlarını varsayılana döndür', en:'Restore default power schemes',
+    cmd:'powercfg -restoredefaultschemes',
+    dur:'~3 sn', risk:'caution', type:'write',
+    what:'Tüm özel güç planlarını siler, Windows varsayılanlarına döndürür.',
+    out:'"Restored default power schemes".' },
+
+  { n:65, mode:'action', g:'windowsRepair', tr:'Grup Politikalarını Güncelle', en:'Update Group Policies',
+    cmd:'gpupdate /force',
+    dur:'~10 sn', risk:null, type:'write',
+    what:'Yerel grup politikalarını yeniden yükler (etki alanı dahil).',
+    out:'"Computer Policy update completed" + "User Policy update completed".' },
+
+  { n:66, mode:'action', g:'networkRepair', tr:'DNS Önbelleğini Temizle', en:'Flush DNS Cache',
+    cmd:'ipconfig /flushdns',
+    dur:'~2 sn', risk:null, type:'write',
+    what:'Yerel DNS çözümleme önbelleğini siler. Web siteleri eski IP’de takılıysa deneyin.',
+    out:'"Successfully flushed the DNS Resolver Cache".' },
+
+  { n:67, mode:'action', g:'networkRepair', tr:'IP adresini yenile', en:'Renew IP Address',
+    cmd:'ipconfig /release  +  ipconfig /renew',
+    dur:'~5 sn', risk:null, type:'write',
+    what:'DHCP üzerinden yeni IP adresi alır.',
+    out:'Yeni IP, subnet, gateway + sonrasında IP özeti.' },
+
+  { n:68, mode:'action', g:'networkRepair', tr:'Ping Testi Yap', en:'Run Ping Test',
+    cmd:'Test-Connection google.com',
+    dur:'~10 sn', risk:null, type:'write',
+    what:'Kullanıcının seçtiği bir hedefe 4 ping atar (varsayılan 8.8.8.8).',
+    out:'Ping süreleri + packet loss.' },
+
+  { n:69, mode:'action', g:'networkRepair', tr:'Ağ adaptörlerini yeniden başlat', en:'Restart Network Adapters',
+    cmd:'Restart-NetAdapter -Name *',
+    dur:'~15 sn', risk:'caution', type:'write',
+    what:'Tüm ağ adaptörlerini devre dışı bırakıp etkinleştirir. VPN/RDP bağlantısını keser.',
+    out:'Adaptörler yeniden başlatıldı, bağlantı geri geldi.' },
+
+  { n:70, mode:'action', g:'networkRepair', tr:'Kayıtlı Wi-Fi profilini sil', en:'Forget Saved Wi-Fi',
+    cmd:'netsh wlan delete profile name="X"',
+    dur:'~3 sn', risk:'caution', type:'write',
+    what:'Listeden seçilen Wi-Fi profilini siler. Şifreyi yeniden girmeniz gerekir.',
+    out:'"Profile X is deleted from interface".' },
+
+  { n:71, mode:'action', g:'networkRepair', tr:'Winsock kataloğunu sıfırla', en:'Reset Winsock',
+    cmd:'netsh winsock reset',
+    dur:'~10 sn + yeniden başlatma önerisi', risk:'caution', type:'write',
+    what:'Windows Sockets ayarlarını varsayılana döndürür. İnternet çalışmıyorsa deneyin.',
+    out:'"Winsock reset completed successfully". Yeniden başlatma önerilir.' },
+
+  { n:72, mode:'action', g:'networkRepair', tr:'TCP/IP yığınını sıfırla', en:'Reset TCP/IP Stack',
+    cmd:'netsh int ip reset',
+    dur:'~10 sn + yeniden başlatma önerisi', risk:'advanced', type:'write',
+    what:'TCP/IP yığınını varsayılan ayarlara sıfırlar. Son çare.',
+    out:'"Resetting… completed". Yeniden başlatma zorunlu.' },
+
+  { n:73, mode:'action', g:'networkRepair', tr:'WinHTTP proxy ayarını sıfırla', en:'Reset WinHTTP Proxy',
+    cmd:'netsh winhttp reset proxy',
+    dur:'~3 sn', risk:'caution', type:'write',
+    what:'WinHTTP proxy ayarlarını siler (bazı uygulamaları etkiler).',
+    out:'"WinHTTP proxy settings were successfully reset".' },
+
+  { n:74, mode:'action', g:'networkRepair', tr:'Hosts dosyasını varsayılana döndür', en:'Restore default Hosts file',
+    cmd:'Copy-Item default_hosts → hosts',
+    dur:'~3 sn', risk:'caution', type:'write',
+    what:'Hosts dosyasındaki tüm özel eşlemeleri siler (varsayılan Windows hosts ile değiştirir).',
+    out:'Hosts varsayılana döndürüldü.' },
+
+  { n:75, mode:'action', g:'networkRepair', tr:'Güvenlik duvarı kurallarını sıfırla', en:'Reset Firewall Rules',
+    cmd:'netsh advfirewall reset',
+    dur:'~10 sn', risk:'advanced', type:'write',
+    what:'Tüm özel güvenlik duvarı kurallarını siler, varsayılan politikayı yükler.',
+    out:'"Firewall rules were reset". Yeni kurallar yeniden oluşturulmalı.' },
+
+  { n:76, mode:'action', g:'cleanupDisk', tr:'Windows Disk Temizliği Yap', en:'Windows Disk Cleanup',
+    cmd:'cleanmgr /d C',
+    dur:'~2 dk', risk:'caution', type:'write',
+    what:'Disk Cleanup sihirbazını sessiz modda çalıştırır (temp, çöp kutusu, eski Windows update).',
+    out:'"Disk Cleanup is completed" + kazanılan MB.' },
+
+  { n:77, mode:'action', g:'cleanupDisk', tr:'Gereksiz Dosyaları Temizle (önce önizleme)', en:'Clean Unnecessary Files',
+    cmd:'Remove-Item temp, prefetch, old logs (önce rapor)',
+    dur:'~1 dk', risk:'caution', type:'write',
+    what:'Temp, Prefetch, eski log dosyalarını listeler, onay sonrası siler.',
+    out:'Bulunan dosya sayısı + toplam boyut, sonra silme onayı.' },
+
+  { n:78, mode:'action', g:'cleanupDisk', tr:'Tarayıcı önbelleklerini temizle', en:'Clear Browser Caches',
+    cmd:'Remove Chrome/Edge/Firefox cache folders',
+    dur:'~30 sn', risk:'caution', type:'write',
+    what:'Chrome, Edge, Firefox önbellek ve çerezlerini siler (giriş bilgisi kaybı olabilir).',
+    out:'Tarayıcı başına silinen dosya sayısı.' },
+
+  { n:79, mode:'action', g:'cleanupDisk', tr:'WinSxS bileşen deposunu küçült (10-30 dk)', en:'Shrink Component Store',
+    cmd:'DISM /Online /Cleanup-Image /StartComponentCleanup',
+    dur:'10-30 dk', risk:'caution', type:'write',
+    what:'WinSxS’taki eski/superseded bileşenleri kaldırır. DİKKAT: /ResetBase KULLANILMAZ (geri alma imkânsız olur).',
+    out:'"Component cleanup completed" + kazanılan MB.' },
+
+  { n:80, mode:'action', g:'cleanupDisk', tr:'Yinelenen Dosya Bulucu', en:'Duplicate File Finder',
+    cmd:'Get-ChildItem -Recurse | Group Hash → Select-Object',
+    dur:'~1-5 dk', risk:null, type:'write',
+    what:'Seçilen klasördeki SHA256 eşleşmeli dosyaları gruplar.',
+    out:'Grup başına: dosya yolları + boyut + kullanıcı seçimli silme.' },
+
+  { n:81, mode:'action', g:'cleanupDisk', tr:'Diskleri iyileştir (TRIM / birleştir, ~1 sa)', en:'Optimize Drives',
+    cmd:'defrag C: /O /V',
+    dur:'~30-60 dk', risk:'caution', type:'write',
+    what:'SSD’de TRIM, HDD’de defrag çalıştırır (kullanım sırasında yavaşlatabilir).',
+    out:'"Optimization complete" + kazanılan alan.' },
+
+  { n:82, mode:'action', g:'cleanupDisk', tr:'Açılışta disk onarımı planla', en:'Schedule Disk Repair',
+    cmd:'chkdsk C: /f /r /x → reboot',
+    dur:'bir sonraki açılışta ~1 sa', risk:'advanced', type:'write',
+    what:'chkdsk /f /r /x komutunu bir sonraki açılışta çalışacak şekilde planlar.',
+    out:'"Will be run on next restart".' },
+
+  { n:83, mode:'action', g:'cleanupDisk', tr:'Eski geri yükleme noktalarını sil', en:'Delete Old Restore Points',
+    cmd:'vssadmin delete shadows /oldest',
+    dur:'~10 sn', risk:'advanced', type:'write',
+    what:'En eski System Restore ve Volume Shadow Copy kayıtlarını siler (yer açar).',
+    out:'Silinen shadow sayısı + kazanılan GB.' },
+
+  { n:84, mode:'action', g:'software', tr:'Microsoft Store uygulamalarını güncelle', en:'Update Store Apps',
+    cmd:'Get-CimInstance Win32_Product | foreach { ($_.Caption) } → Store update',
+    dur:'~1-5 dk', risk:null, type:'write',
+    what:'Tüm Microsoft Store uygulamalarını günceller.',
+    out:'Güncellenen uygulamaların listesi.' },
+
+  { n:85, mode:'action', g:'software', tr:'Tüm programları winget ile güncelle', en:'Update All Programs with winget',
+    cmd:'winget upgrade --all --silent --accept-source-agreements',
+    dur:'5-30 dk', risk:null, type:'write',
+    what:'winget ile kurulu tüm programların güncellemesini yapar.',
+    out:'Güncellenen paketler + sürümleri.' },
+
+  { n:86, mode:'action', g:'software', tr:'Tek bir paketi winget ile güncelle', en:'Upgrade Single Package',
+    cmd:'winget upgrade --name <paket>',
+    dur:'~1-3 dk', risk:'safe', type:'write',
+    what:'Listeden seçilen tek bir winget paketini günceller.',
+    out:'"Successfully installed".' },
+
+  { n:87, mode:'action', g:'software', tr:'Visual C++ Redistributable kur', en:'Install VC++ Redistributable',
+    cmd:'winget install --id Microsoft.VCRedist.2015+.x64 -e',
+    dur:'~1 dk', risk:'safe', type:'write',
+    what:'VC++ 2005-2022 Redistributable paketini kurar (birçok uygulama gerektirir).',
+    out:'"Successfully installed".' },
+
+  { n:88, mode:'action', g:'software', tr:'Program kaldır', en:'Uninstall Program',
+    cmd:'Get-Package | Out-GridView → winget uninstall',
+    dur:'değişken', risk:'advanced', type:'write',
+    what:'Listeden seçilen programı winget üzerinden kaldırır.',
+    out:'"Successfully uninstalled".' },
+
+  { n:89, mode:'action', g:'software', tr:'Store önbelleğini sıfırla', en:'Reset Store Cache',
+    cmd:'wsreset.exe',
+    dur:'~10 sn', risk:'safe', type:'write',
+    what:'Microsoft Store önbelleğini siler (Store açılmıyorsa deneyin).',
+    out:'Store otomatik açılır.' },
+
+  { n:90, mode:'action', g:'software', tr:'Store uygulamasını yeniden kaydet', en:'Re-Register Store App',
+    cmd:'Get-AppxPackage Microsoft.WindowsStore | Reset',
+    dur:'~30 sn', risk:'caution', type:'write',
+    what:'Windows Store uygulamasını yeniden kurar (çökmüşsa).',
+    out:'İşlem tamamlandı.' },
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  mode: 'info',        // 'info' | 'action' | 'all'
+  lang: 'tr',
+  search: '',
+  selectedN: 1,
+
+  // Auth
+  token: null,
+  user: null,            // { id, username }
+  authMode: 'login',     // 'login' | 'signup'
+
+  // Devices
+  devices: [],
+  selectedDeviceId: null,
+  pairingCode: null,
+  pairingExpiresAt: 0,
+
+  // Command execution
+  running: false,
+  output: null,          // { n, commandId, status, output, error, durationMs, exitCode, cancelled }
+  pollHandle: null,      // active command polling interval
+};
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+function label(it) { return state.lang === 'en' ? it.en : it.tr; }
+
+function groupLabel(g) {
+  const map = GROUPS.info.concat(GROUPS.action).find(x => x.k === g);
+  if (!map) return g;
+  return state.lang === 'en' ? map.en : map.tr;
+}
+
+function filteredItems() {
+  let list = ITEMS;
+  if (state.mode !== 'all') list = list.filter(i => i.mode === state.mode);
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    list = list.filter(i =>
+      (i.tr + ' ' + i.en + ' ' + i.cmd + ' ' + i.what + ' ' + i.out).toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
+function visibleItems() {
+  return filteredItems();
+}
+
+/* ============================================================
+   RENDER: LIST
+   ============================================================ */
+function renderList() {
+  const list = $('#list');
+  const items = visibleItems();
+
+  if (items.length === 0) {
+    list.innerHTML = `
+      <div class="no-results">
+        <div class="glyph">— — —</div>
+        <div>${state.lang === 'en' ? 'No results' : 'Sonuç yok'}</div>
+      </div>`;
+    return;
+  }
+
+  // group by group key, keep order
+  const groups = GROUPS.info.concat(GROUPS.action);
+  const wantedGroups = state.mode === 'all'
+    ? groups
+    : (state.mode === 'info' ? GROUPS.info : GROUPS.action);
+
+  let html = '';
+  for (const g of wantedGroups) {
+    const groupItems = items.filter(i => i.g === g.k);
+    if (groupItems.length === 0) continue;
+
+    html += `<div class="group">
+      <div class="group-header">
+        <span class="group-name">${escapeHtml(groupLabel(g.k))}</span>
+        <span class="group-meta">${groupItems.length}</span>
+        <span class="group-line"></span>
+      </div>`;
+
+    for (const it of groupItems) {
+      const isSelected = it.n === state.selectedN;
+      const dim = state.search && !(it.tr + ' ' + it.en + ' ' + it.cmd + ' ' + i_what(it) + ' ' + it.out).toLowerCase().includes(state.search.toLowerCase()) ? 'dim' : '';
+      html += renderItem(it, isSelected, dim);
+    }
+    html += `</div>`;
+  }
+  list.innerHTML = html;
+
+  // attach click handlers
+  $$('.item').forEach(el => {
+    el.addEventListener('click', () => {
+      state.selectedN = parseInt(el.dataset.n, 10);
+      renderList();
+      renderDetail();
+    });
+  });
+}
+
+function i_what(it) { return it.what || ''; }
+
+function renderItem(it, selected, dim = '') {
+  const badge = badgeHtml(it);
+  const dur = it.dur ? `<span class="dur">· ${escapeHtml(it.dur)}</span>` : '';
+  const typeIcon = it.type === 'write'
+    ? `<span class="item-type-icon" title="yazar">›</span>`
+    : `<span class="item-type-icon" title="okur">·</span>`;
+  return `
+    <div class="item ${selected ? 'selected' : ''} ${dim}" data-n="${it.n}">
+      <div class="item-num">${it.n}.</div>
+      <div class="item-body">
+        <div class="item-label">${escapeHtml(label(it))}</div>
+        <div class="item-meta">${typeIcon} ${escapeHtml(it.g)}${dur}</div>
+      </div>
+      <div class="item-side">${badge}</div>
+    </div>`;
+}
+
+function badgeHtml(it) {
+  const risk = it.risk;
+  const type = it.type;
+  const badges = [];
+  if (type === 'write') badges.push(`<span class="badge write">YAZAR</span>`);
+  else badges.push(`<span class="badge read">OKUR</span>`);
+  if (risk === 'caution') badges.push(`<span class="badge caution">DİKKAT</span>`);
+  else if (risk === 'advanced') badges.push(`<span class="badge advanced">İLERİ</span>`);
+  else if (risk === 'safe') badges.push(`<span class="badge safe">GÜVENLİ</span>`);
+  return badges.join('');
+}
+
+/* ============================================================
+   RENDER: DETAIL
+   ============================================================ */
+function renderDetail() {
+  const pane = $('#detailPane');
+  const it = ITEMS.find(i => i.n === state.selectedN);
+  if (!it) { pane.innerHTML = ''; return; }
+
+  const risk = it.risk;
+  let noteHtml = '';
+  if (risk === 'advanced') {
+    noteHtml = `<div class="note advanced">
+      <b>İLERİ seviye.</b> Bu komut sistem yapılandırmasını kalıcı olarak değiştirir. Önce Sistem Geri Yükleme Noktası oluşturun.
+    </div>`;
+  } else if (risk === 'caution') {
+    noteHtml = `<div class="note caution">
+      <b>Dikkat.</b> Geri alınabilir ama bazı ayarları veya kullanıcı verilerini etkiler.
+    </div>`;
+  } else if (it.type === 'write') {
+    noteHtml = `<div class="note info">
+      <b>Bilgi amaçlı.</b> Bu web arayüzü sadece rehberdir. Çalıştırmak için orijinal PowerShell betiğini admin olarak açın.
+    </div>`;
+  }
+
+  const facts = [];
+  if (it.dur) facts.push({ l: state.lang === 'en' ? 'Duration' : 'Süre', v: it.dur });
+  facts.push({ l: state.lang === 'en' ? 'Type' : 'Tür', v: it.type === 'write' ? (state.lang === 'en' ? 'Modifies system' : 'Sistemi değiştirir') : (state.lang === 'en' ? 'Read-only' : 'Salt okunur') });
+  if (risk) facts.push({ l: state.lang === 'en' ? 'Risk' : 'Risk', v: ({safe:state.lang==='en'?'Safe':'Güvenli',caution:state.lang==='en'?'Caution':'Dikkat',advanced:state.lang==='en'?'Advanced':'İleri'})[risk] });
+  facts.push({ l: state.lang === 'en' ? 'Category' : 'Kategori', v: groupLabel(it.g) });
+
+  pane.innerHTML = `
+    <div class="detail">
+      <div class="detail-breadcrumb">
+        ${state.lang === 'en' ? 'Home' : 'Ana'} <span class="sep">›</span>
+        ${state.lang === 'en' ? (it.mode === 'info' ? 'Information' : 'Quick Fixes') : (it.mode === 'info' ? 'Bilgi Araçları' : 'Hızlı Onarım')}
+        <span class="sep">›</span>
+        <span class="here">${escapeHtml(groupLabel(it.g))}</span>
+      </div>
+      <div class="detail-head">
+        <div class="detail-num">#${String(it.n).padStart(2,'0')}</div>
+        <div>
+          <div class="detail-title">${escapeHtml(label(it))}</div>
+          <div class="detail-badges">${badgeHtml(it)}</div>
+        </div>
+      </div>
+
+      <div class="section-label">${state.lang === 'en' ? 'What it does' : 'Ne yapar'}</div>
+      <div class="detail-text">${escapeHtml(it.what)}</div>
+
+      ${it.out ? `
+        <div class="section-label">${state.lang === 'en' ? 'What it shows / does' : 'Çıktı / Sonuç'}</div>
+        <div class="detail-text">${escapeHtml(it.out)}</div>
+      ` : ''}
+
+      ${noteHtml}
+
+      <div class="section-label">${state.lang === 'en' ? 'Command' : 'Komut'}</div>
+      <div class="cmd-block">
+        <div class="cmd-block-head">
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>PowerShell</span>
+          <button class="cmd-copy" id="cmdCopy">${state.lang === 'en' ? 'Copy' : 'KOPYALA'}</button>
+        </div>
+        <div class="cmd-body">${colorize(it.cmd)}</div>
+      </div>
+
+      <div class="run-row">
+        <button class="run-btn ${it.write ? 'danger' : ''}" id="runBtn" ${(!state.selectedDeviceId || state.running) ? 'disabled' : ''}>
+          <span class="pulse"></span>
+          ${state.running ? (state.lang === 'en' ? 'Running…' : 'Çalışıyor…')
+            : (it.write
+              ? (state.lang === 'en' ? 'Execute on this PC' : 'Bu PC\'de Çalıştır')
+              : (state.lang === 'en' ? 'Get info from this PC' : 'Bilgi Al'))}
+        </button>
+        ${!state.selectedDeviceId
+          ? `<span style="font-size:11px;color:var(--text-4)">${state.lang==='en'
+              ? 'No device selected — click the device pill (top right) to pair one.'
+              : 'Cihaz seçili değil — sağ üstteki cihaz menüsünden eşle.'}</span>`
+          : (() => {
+              const dev = state.devices.find(d => d.id === state.selectedDeviceId);
+              if (dev && !dev.isOnline) {
+                return `<span style="font-size:11px;color:var(--yellow)">${state.lang==='en'
+                  ? '⚠ Device offline — start the agent on that PC.'
+                  : '⚠ Cihaz çevrimdışı — ajanı o PC\'de başlat.'}</span>`;
+              }
+              return '';
+            })()}
+      </div>
+
+      <div id="outputArea">
+        ${state.output && state.output.n === it.n ? renderOutput(state.output) : `
+          <div class="output-empty">${state.lang==='en'
+            ? "Click the button above to fetch live data from this PC."
+            : "Yukarıdaki butona basarak bu PC'den canlı veri alın."}</div>`}
+      </div>
+
+      <div class="section-label">${state.lang === 'en' ? 'Metadata' : 'Özet'}</div>
+      <div class="fact-grid">
+        ${facts.map(f => `
+          <div class="fact">
+            <div class="fact-label">${escapeHtml(f.l)}</div>
+            <div class="fact-value">${escapeHtml(f.v)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  $('#cmdCopy').addEventListener('click', () => {
+    copyToClipboard(it.cmd);
+  });
+  const rb = $('#runBtn');
+  if (rb) {
+    rb.addEventListener('click', () => runItem(it.n));
+  }
+}
+
+/* ============================================================
+   RUN ITEM (fetch /api/run/N)
+   ============================================================ */
+function renderOutput(out) {
+  if (!out) return '';
+  if (out._loading) {
+    return `<div class="output-panel">
+      <div class="output-head">
+        <span>PowerShell Çıktısı</span>
+        <span class="meta"><span class="spinner"></span> çalışıyor…</span>
+      </div>
+      <div class="output-body loading"><span class="spinner"></span> ${escapeHtml(state.lang==='en'?'Running command…':'Komut çalışıyor…')}</div>
+    </div>`;
+  }
+  if (out._error) {
+    return `<div class="output-panel">
+      <div class="output-head">
+        <span>PowerShell Çıktısı</span>
+        <span class="meta"><span class="err-tag">hata</span></span>
+      </div>
+      <div class="output-body" style="color:var(--red)">${escapeHtml(out.error)}</div>
+    </div>`;
+  }
+  const head = out.ok
+    ? `<span class="ok-tag">✓ başarılı</span>`
+    : (out.cancelled
+        ? `<span class="cancel-tag">iptal</span>`
+        : `<span class="err-tag">hata</span>`);
+  let dur = out.durationMs != null
+    ? (out.durationMs < 1000
+        ? `${out.durationMs} ms`
+        : `${(out.durationMs/1000).toFixed(1)} sn`)
+    : '';
+  let exit = out.exitCode != null ? `exit ${out.exitCode}` : '';
+  const meta = [dur, exit].filter(Boolean).map(s => `<span>${escapeHtml(s)}</span>`).join('');
+  const body = (out.output || '').trim() || (state.lang==='en'?'(no output)':'(çıktı yok)');
+  return `<div class="output-panel">
+    <div class="output-head">
+      <span>PowerShell Çıktısı</span>
+      <span class="meta">${head} ${meta}</span>
+    </div>
+    <div class="output-body">${escapeHtml(body)}</div>
+  </div>`;
+}
+
+async function runItem(n) {
+  if (!state.token) { showToast('Lütfen giriş yapın.'); return; }
+  if (!state.selectedDeviceId) {
+    showToast('Lütfen bir cihaz seçin (sağ üstteki cihaz menüsü).');
+    return;
+  }
+  if (state.running) return;
+  state.running = true;
+  state.output = { n, _loading: true };
+  renderDetail();
+
+  try {
+    const r = await fetch('/api/commands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + state.token },
+      body: JSON.stringify({ deviceId: state.selectedDeviceId, itemN: n }),
+    });
+    const data = await r.json();
+    if (!data.ok) {
+      state.output = { n, _error: true, error: data.error || 'Komut oluşturulamadı' };
+      state.running = false;
+      renderDetail();
+      return;
+    }
+    state.output = { n, commandId: data.commandId, status: 'pending' };
+    pollCommand(data.commandId);
+  } catch (e) {
+    state.output = { n, _error: true, error: e.message || String(e) };
+    state.running = false;
+    renderDetail();
+  }
+}
+
+function pollCommand(commandId) {
+  if (state.pollHandle) clearInterval(state.pollHandle);
+  let attempts = 0;
+  const start = Date.now();
+  state.pollHandle = setInterval(async () => {
+    attempts++;
+    // Timeout: 5 dakika
+    if (Date.now() - start > 5 * 60 * 1000 || attempts > 600) {
+      clearInterval(state.pollHandle);
+      state.pollHandle = null;
+      state.output = { n: state.output.n, _error: true, error: 'Zaman aşımı — ajan cevap vermedi' };
+      state.running = false;
+      renderDetail();
+      return;
+    }
+    try {
+      const r = await fetch('/api/commands/' + commandId, {
+        headers: { 'Authorization': 'Bearer ' + state.token },
+      });
+      const data = await r.json();
+      if (!data.ok) {
+        clearInterval(state.pollHandle);
+        state.pollHandle = null;
+        state.output = { n: state.output.n, _error: true, error: data.error };
+        state.running = false;
+        renderDetail();
+        return;
+      }
+      const cmd = data.command;
+      if (cmd.status === 'pending' || cmd.status === 'running') {
+        // Devam ediyor
+        state.output = { n: state.output.n, commandId, status: cmd.status };
+        renderDetail();
+      } else {
+        // Tamamlandı
+        clearInterval(state.pollHandle);
+        state.pollHandle = null;
+        state.output = {
+          n: state.output.n,
+          commandId,
+          ok: cmd.status === 'done',
+          status: cmd.status,
+          output: cmd.output,
+          error: cmd.error,
+          durationMs: cmd.durationMs,
+          exitCode: cmd.exitCode,
+          cancelled: cmd.status === 'cancelled',
+        };
+        state.running = false;
+        renderDetail();
+      }
+    } catch (e) {
+      // network error, retry
+    }
+  }, 1000);
+}
+
+async function pingServer() {
+  // Kullanılmıyor, cihaz durumunu loadDevices ile yenil
+}
+
+function updateServerBadge() {
+  // Kullanılmıyor
+}
+
+function colorize(cmd) {
+  // very simple syntax coloring
+  let s = escapeHtml(cmd);
+  s = s.replace(/(\/\w[\w-]*)/g, '<span class="flag">$1</span>');   // /scannow etc
+  s = s.replace(/\b(ipconfig|sfc|DISM|netsh|gpupdate|chkdsk|powercfg|defrag|cleanmgr|systeminfo|winmgmt|w32tm|winver|wsreset|ie4uinit)\b/gi,
+    '<span class="exe">$1</span>');
+  s = s.replace(/(\$\w+|%\w+%|@\{[^}]+\})/g, '<span class="arg">$1</span>');
+  s = s.replace(/(&amp;&amp;|;)/g, '<span class="cmt">$1</span>');
+  return s;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+function selectNext(dir) {
+  const items = visibleItems();
+  if (items.length === 0) return;
+  let idx = items.findIndex(i => i.n === state.selectedN);
+  if (idx < 0) idx = 0;
+  idx = Math.max(0, Math.min(items.length - 1, idx + dir));
+  state.selectedN = items[idx].n;
+  renderList();
+  renderDetail();
+  scrollSelectedIntoView();
+}
+
+function selectJump(n) {
+  const items = visibleItems();
+  const it = items.find(i => i.n === n);
+  if (it) {
+    state.selectedN = n;
+    renderList();
+    renderDetail();
+    scrollSelectedIntoView();
+  }
+}
+
+function scrollSelectedIntoView() {
+  const el = document.querySelector('.item.selected');
+  if (!el) return;
+  const pane = $('#listPane');
+  const r = el.getBoundingClientRect();
+  const pr = pane.getBoundingClientRect();
+  if (r.top < pr.top + 40) pane.scrollBy({ top: r.top - pr.top - 40, behavior: 'smooth' });
+  else if (r.bottom > pr.bottom - 40) pane.scrollBy({ top: r.bottom - pr.bottom + 40, behavior: 'smooth' });
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => showToast());
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function showToast(msg) {
+  const t = $('#toast');
+  if (msg) t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+function openSearchModal() {
+  $('#searchModal').classList.add('open');
+  $('#modalSearch').value = state.search;
+  $('#modalSearch').focus();
+  updateModalResults();
+}
+
+function closeSearchModal() {
+  $('#searchModal').classList.remove('open');
+}
+
+function updateModalResults() {
+  const q = $('#modalSearch').value.toLowerCase().trim();
+  const box = $('#modalResults');
+  if (!q) { box.innerHTML = `<div class="search-modal-empty">${state.lang==='en'?'Type to search':' Aramak için bir şey yazın'}</div>`; return; }
+  const items = ITEMS.filter(i => (i.tr + ' ' + i.en + ' ' + i.cmd + ' ' + i.what).toLowerCase().includes(q)).slice(0, 30);
+  if (items.length === 0) { box.innerHTML = `<div class="search-modal-empty">—</div>`; return; }
+  box.innerHTML = items.map(i => `
+    <div class="search-modal-result" data-n="${i.n}">
+      <span class="num">${i.n}.</span>
+      <span>${highlight(escapeHtml(label(i)), q)}</span>
+      <span class="badge ${i.type==='write'?'write':'read'}" style="margin-left:auto">${i.type==='write'?'YAZAR':'OKUR'}</span>
+    </div>`).join('');
+  $$('.search-modal-result').forEach(el => {
+    el.addEventListener('click', () => {
+      state.selectedN = parseInt(el.dataset.n, 10);
+      closeSearchModal();
+      renderList(); renderDetail(); scrollSelectedIntoView();
+    });
+  });
+}
+
+function highlight(text, q) {
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+/* ============================================================
+   EVENT BINDINGS
+   ============================================================ */
+function bind() {
+  // tabs
+  $$('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      $$('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      state.mode = t.dataset.mode;
+      const firstInMode = ITEMS.find(i => state.mode === 'all' || i.mode === state.mode);
+      if (firstInMode) state.selectedN = firstInMode.n;
+      renderList();
+      renderDetail();
+    });
+  });
+
+  // language
+  $$('.lang-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      $$('.lang-toggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      state.lang = b.dataset.lang;
+      renderList();
+      renderDetail();
+    });
+  });
+
+  // search input
+  $('#searchInput').addEventListener('input', e => {
+    state.search = e.target.value;
+    renderList();
+    renderDetail();
+  });
+
+  // keyboard
+  document.addEventListener('keydown', (e) => {
+    const inField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    if ($('#searchModal').classList.contains('open')) {
+      if (e.key === 'Escape') { closeSearchModal(); e.preventDefault(); return; }
+      return;
+    }
+
+    if (inField) {
+      if (e.key === 'Escape') e.target.blur();
+      return;
+    }
+
+    switch (e.key) {
+      case 'j': case 'ArrowDown': selectNext(1); e.preventDefault(); break;
+      case 'k': case 'ArrowUp': selectNext(-1); e.preventDefault(); break;
+      case 'g': selectJump(1); e.preventDefault(); break;
+      case 'G': {
+        const items = visibleItems();
+        if (items.length) { state.selectedN = items[items.length-1].n; renderList(); renderDetail(); scrollSelectedIntoView(); }
+        e.preventDefault(); break;
+      }
+      case 'Tab':
+        // cycle modes
+        const order = ['info','action','all'];
+        const idx = order.indexOf(state.mode);
+        const next = order[(idx + (e.shiftKey ? -1 : 1) + 3) % 3];
+        state.mode = next;
+        $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.mode === next));
+        const firstInMode = ITEMS.find(i => next === 'all' || i.mode === next);
+        if (firstInMode) state.selectedN = firstInMode.n;
+        renderList(); renderDetail();
+        e.preventDefault(); break;
+      case '/':
+        openSearchModal(); e.preventDefault(); break;
+      case 't':
+        state.lang = state.lang === 'tr' ? 'en' : 'tr';
+        $$('.lang-toggle button').forEach(x => x.classList.toggle('active', x.dataset.lang === state.lang));
+        renderList(); renderDetail();
+        e.preventDefault(); break;
+      case 'c':
+        const it = ITEMS.find(i => i.n === state.selectedN);
+        if (it) { copyToClipboard(it.cmd); }
+        e.preventDefault(); break;
+      case 'r':
+        runItem(state.selectedN);
+        e.preventDefault(); break;
+      case '?':
+        showToast(state.lang==='en'
+          ? '↑↓ navigate · Enter detail · / search · 1-9 jump · Tab mode · t lang · c copy'
+          : '↑↓ gez · r çalıştır · Enter detay · / ara · 1-9 atla · Tab mod · t dil');
+        e.preventDefault(); break;
+      default:
+        // number 1-9 jumps
+        if (/^[1-9]$/.test(e.key)) {
+          const items = visibleItems();
+          const it = items.find(x => x.n === parseInt(e.key, 10));
+          if (it) { selectJump(it.n); e.preventDefault(); }
+        }
+    }
+  });
+
+  // modal search input
+  $('#modalSearch').addEventListener('input', updateModalResults);
+}
+
+/* ============================================================
+   AUTH & DEVICES
+   ============================================================ */
+async function api(path, opts = {}) {
+  const headers = opts.headers || {};
+  if (state.token && !headers.Authorization) headers.Authorization = 'Bearer ' + state.token;
+  if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  const r = await fetch(path, { ...opts, headers });
+  let data = null;
+  try { data = await r.json(); } catch {}
+  if (!r.ok && (!data || !data.ok)) {
+    throw new Error((data && data.error) || ('HTTP ' + r.status));
+  }
+  return data || {};
+}
+
+function loadStoredAuth() {
+  try {
+    const t = localStorage.getItem('robink_token');
+    const u = localStorage.getItem('robink_user');
+    if (t && u) {
+      state.token = t;
+      state.user = JSON.parse(u);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+function persistAuth() {
+  try {
+    localStorage.setItem('robink_token', state.token);
+    localStorage.setItem('robink_user', JSON.stringify(state.user));
+  } catch {}
+}
+
+function clearAuth() {
+  state.token = null;
+  state.user = null;
+  try {
+    localStorage.removeItem('robink_token');
+    localStorage.removeItem('robink_user');
+  } catch {}
+}
+
+async function doAuth() {
+  const username = $('#authUsername').value.trim();
+  const password = $('#authPassword').value;
+  if (!username || !password) return;
+  const btn = $('#authBtn');
+  btn.disabled = true;
+  $('#authError').style.display = 'none';
+  try {
+    const path = state.authMode === 'login' ? '/api/login' : '/api/signup';
+    const data = await api(path, {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    state.token = data.token;
+    state.user = data.user;
+    persistAuth();
+    showApp();
+  } catch (e) {
+    $('#authError').textContent = e.message || 'Giriş başarısız';
+    $('#authError').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showApp() {
+  $('#authGate').style.display = 'none';
+  $('#app').style.display = '';
+  if (state.user) {
+    $('#userName').textContent = state.user.username;
+    $('#userAvatar').textContent = state.user.username.charAt(0).toUpperCase();
+  }
+  loadDevices();
+}
+
+function showAuth() {
+  $('#authGate').style.display = '';
+  $('#app').style.display = 'none';
+}
+
+function logout() {
+  clearAuth();
+  state.devices = [];
+  state.selectedDeviceId = null;
+  showAuth();
+}
+
+async function loadDevices() {
+  try {
+    const data = await api('/api/state');
+    state.devices = data.devices || [];
+    if (!state.selectedDeviceId && state.devices.length > 0) {
+      const online = state.devices.find(d => d.isOnline) || state.devices[0];
+      state.selectedDeviceId = online.id;
+    }
+    renderDevicePill();
+    renderDeviceMenu();
+    renderDetail(); // run button state may change
+  } catch (e) {
+    console.error('loadDevices:', e);
+  }
+}
+
+function renderDevicePill() {
+  const pill = $('#devicePill');
+  const txt = $('#devicePillText');
+  if (!pill || !txt) return;
+  const dev = state.devices.find(d => d.id === state.selectedDeviceId);
+  pill.classList.remove('online', 'offline');
+  if (!dev) {
+    txt.textContent = state.lang === 'en' ? 'No device' : 'Cihaz seç…';
+    pill.classList.add('offline');
+    return;
+  }
+  pill.classList.add(dev.isOnline ? 'online' : 'offline');
+  txt.textContent = dev.name + (dev.isOnline ? '' : ' (offline)');
+}
+
+function renderDeviceMenu() {
+  const menu = $('#deviceMenu');
+  if (!menu) return;
+  if (state.devices.length === 0) {
+    menu.innerHTML = `<div class="device-menu-item" style="color:var(--text-4); justify-content:center">
+      ${state.lang === 'en' ? 'No devices yet' : 'Henüz cihaz yok'}
+    </div>
+    <div class="device-menu-divider"></div>
+    <div class="device-menu-item add" id="addDeviceBtn">+ YENİ CİHAZ EKLE</div>`;
+  } else {
+    let html = state.devices.map(d => `
+      <div class="device-menu-item ${d.id === state.selectedDeviceId ? 'active' : ''} ${d.isOnline ? 'online' : ''}" data-id="${d.id}">
+        <span class="dot"></span>
+        <span style="flex:1">${escapeHtml(d.name)}</span>
+        <span style="font-size:10px;color:var(--text-4)">${d.isOnline ? 'online' : 'offline'}</span>
+      </div>`).join('');
+    html += `<div class="device-menu-divider"></div>
+      <div class="device-menu-item add" id="addDeviceBtn">+ YENİ CİHAZ EKLE</div>`;
+    menu.innerHTML = html;
+    menu.querySelectorAll('.device-menu-item[data-id]').forEach(el => {
+      el.addEventListener('click', () => {
+        state.selectedDeviceId = el.dataset.id;
+        renderDevicePill();
+        renderDeviceMenu();
+        renderDetail();
+        $('#deviceMenu').classList.remove('open');
+      });
+    });
+  }
+  $('#addDeviceBtn').addEventListener('click', generatePairingCode);
+}
+
+async function generatePairingCode() {
+  $('#deviceMenu').classList.remove('open');
+  try {
+    const data = await api('/api/pairing/generate', { method: 'POST', body: '{}' });
+    state.pairingCode = data.code;
+    state.pairingExpiresAt = data.expiresAt;
+    $('#pairingCode').textContent = data.code;
+    const serverUrl = window.location.origin;
+    const cmd = `powershell -ExecutionPolicy Bypass -Command "& { iwr '${serverUrl}/agent/RobinkV2-Agent.ps1' -OutFile '$env:TEMP\\Robink-Agent.ps1'; & '$env:TEMP\\Robink-Agent.ps1' -Server '${serverUrl}' -PairingCode ${data.code} -DeviceName '${state.user.username}-PC' }"`;
+    $('#pairingCmd').textContent = cmd;
+    $('#pairingModal').classList.add('open');
+    startPairingTimer();
+  } catch (e) {
+    showToast('Kod oluşturulamadı: ' + e.message);
+  }
+}
+
+function startPairingTimer() {
+  if (window._pairingTimer) clearInterval(window._pairingTimer);
+  window._pairingTimer = setInterval(() => {
+    const ms = state.pairingExpiresAt - Date.now();
+    if (ms <= 0) {
+      clearInterval(window._pairingTimer);
+      $('#pairingTimer').textContent = 'Süresi doldu';
+      $('#pairingCode').textContent = '------';
+      return;
+    }
+    const min = Math.floor(ms / 60000);
+    const sec = Math.floor((ms % 60000) / 1000);
+    $('#pairingTimer').textContent = `${min}:${String(sec).padStart(2, '0')} kaldı`;
+  }, 1000);
+}
+
+function closePairing() {
+  $('#pairingModal').classList.remove('open');
+  if (window._pairingTimer) clearInterval(window._pairingTimer);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  // tab counts
+  const infoCount = ITEMS.filter(i => i.mode === 'info').length;
+  const actCount = ITEMS.filter(i => i.mode === 'action').length;
+  $$('.tab[data-mode="info"] .count')[0].textContent = infoCount;
+  $$('.tab[data-mode="action"] .count')[0].textContent = actCount;
+  $$('.tab[data-mode="all"] .count')[0].textContent = ITEMS.length;
+
+  // Auth UI
+  const form = $('#authForm');
+  form.addEventListener('submit', (e) => { e.preventDefault(); doAuth(); });
+  $('#authModeToggle').addEventListener('click', () => {
+    state.authMode = state.authMode === 'login' ? 'signup' : 'login';
+    const isLogin = state.authMode === 'login';
+    $('#authModeText').textContent = isLogin ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?';
+    $('#authModeToggle').textContent = isLogin ? 'Kayıt ol' : 'Giriş yap';
+    $('#authBtn').textContent = isLogin ? 'GİRİŞ YAP' : 'KAYIT OL';
+  });
+
+  // Device pill menu
+  $('#devicePill').addEventListener('click', () => $('#deviceMenu').classList.toggle('open'));
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#devicePill') && !e.target.closest('#deviceMenu')) {
+      $('#deviceMenu').classList.remove('open');
+    }
+  });
+
+  // User pill logout
+  $('#userPill').addEventListener('click', () => {
+    if (confirm('Çıkış yapmak istiyor musunuz?')) logout();
+  });
+
+  // Pairing modal
+  $('#closePairing').addEventListener('click', closePairing);
+  $('#copyPairingCmd').addEventListener('click', () => {
+    const cmd = $('#pairingCmd').textContent;
+    copyToClipboard(cmd);
+  });
+
+  bind();
+
+  // Auth gate
+  if (loadStoredAuth()) {
+    showApp();
+    // Cihazları arka planda yenile
+    setInterval(loadDevices, 5000);
+  } else {
+    showAuth();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

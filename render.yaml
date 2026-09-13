@@ -1,0 +1,35 @@
+# Robink V2 — Render.com Blueprint
+# Bu dosyayla Render'a "New Blueprint Instance" diyerek tek tikla deploy edilir.
+# Web servisi otomatik olusturulur.
+#
+# DATABASE_URL icin iki secenek:
+#   A) Render PostgreSQL: asagidaki "databases:" blogunu aktif edin
+#   B) Supabase:          DATABASE_URL'i Render dashboard'dan elle girin (bize ozel istediginiz)
+
+services:
+  - type: web
+    name: robink-v2-saas
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: WEB_ORIGIN
+        sync: false  # Render otomatik atayacak (https://robink-v2-saas.onrender.com)
+
+# Secenek A: Render PostgreSQL (90 gun ucretsiz, sonra $7/ay).
+# Supabase kullanacaksaniz bu blogu silip dashboard'dan DATABASE_URL'i Supabase'ten alip girin.
+# databases:
+#   - name: robink-v2-db
+#     plan: free
+#     region: oregon
+#     databaseName: robink_v2
+#     user: robink_v2
