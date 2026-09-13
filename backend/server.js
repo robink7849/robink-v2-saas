@@ -202,6 +202,8 @@ app.post('/api/agent/pair', async (req, res) => {
   const { code, name } = req.body || {};
   if (!code || !name) return res.status(400).json({ ok: false, error: 'Code ve cihaz adi gerekli' });
   const pair = await db.findPairingCode(code.toUpperCase());
+  // DEBUG: gercek DB degerlerini gormek icin gecici log
+  console.log(`[Robink V2 /agent/pair] code=${code} pair=${JSON.stringify(pair)} now=${Date.now()} exp_type=${typeof pair?.expires_at} used_type=${typeof pair?.used_at}`);
   if (!pair) return res.status(404).json({ ok: false, error: 'Gecersiz veya kullanilmis kod' });
   if (pair.expires_at < Date.now()) return res.status(410).json({ ok: false, error: 'Kodun suresi dolmus' });
   if (pair.used_at) return res.status(410).json({ ok: false, error: 'Bu kod zaten kullanilmis' });

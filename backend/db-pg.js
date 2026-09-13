@@ -6,9 +6,14 @@
  *   (pg 8.x "family" parametresini tanimiyor; bu yuzden onceden cozumleyip IP veriyoruz)
  */
 
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const dns = require('dns');
 const dnsLookup = require('util').promisify(dns.lookup);
+
+// pg varsayilan olarak BIGINT (oid=20) alanlari string doner.
+// expires_at, created_at, used_at gibi alanlari Date.now() ile karsilastirmak icin
+// Number'a ceviriyoruz. Date.now() ~1.7e12, MAX_SAFE_INTEGER = 9e15 — Number guvenli.
+types.setTypeParser(20, (val) => val === null ? null : Number(val));
 
 let pool = null;
 let initPromise = null;
