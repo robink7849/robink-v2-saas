@@ -101,7 +101,7 @@ async function initSchema() {
 }
 
 async function q(sql, params) {
-  const p = getPool();
+  const p = await getPool(); // getPool artik async — await sart
   return p.query(sql, params);
 }
 
