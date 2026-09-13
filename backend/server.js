@@ -322,9 +322,16 @@ function serializeCmd(cmd) {
 app.use(express.static(PUBLIC_DIR));
 
 // Ajan dosyalarini serve et — kullanicilar tek satir komutla indirebilsin
+// Not: ps1 icin no-cache koyuyoruz ki kullanici her zaman guncel ajani alsin
+// (aksi halde tarayici/CDN eski versiyonu cache'leyebilir)
 app.use('/agent', express.static(AGENT_DIR, {
   setHeaders: (res, p) => {
-    if (p.endsWith('.ps1')) res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    if (p.endsWith('.ps1')) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
   },
   fallthrough: true,
 }));
