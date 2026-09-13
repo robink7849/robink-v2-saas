@@ -14,19 +14,20 @@ let pool = null;
 let initPromise = null;
 
 async function resolveIPv4(host) {
-  // once IPv4 dene
+  // once IPv4 dene — Supabase direct connection cogunlukla IPv4 A kaydina sahip,
+  // Render'da calismasi icin IPv4 ZORUNLU.
   try {
     const r = await dnsLookup(host, { family: 4 });
-    return r.address;
+    return { address: r.address, family: 4 };
   } catch (e4) {
-    // IPv4 yoksa, hostname'in IPv6'sini logla ve fallback olarak IPv6 dene
-    console.warn(`[Robink V2 PG] IPv4 cozumleme basarisiz: ${host} — IPv6 deneniyor`);
-    try {
-      const r = await dnsLookup(host, { family: 6 });
-      return r.address; // Son care: IPv6 — calismazsa Render'da ENETUNREACH
-    } catch (e6) {
-      throw new Error(`DNS basarisiz (IPv4 ve IPv6): ${host} — ${e4.message}`);
-    }
+    // IPv4 yok — bu hostname sadece AAAA (IPv6) kaydina sahip.
+    // Render'in free tier'inda IPv6 outbound genelde bloklu, bu yuzden baglanti basarisiz olur.
+    // Cozum: Supabase Transaction Pooler URL'sine gecmek (port 6543, IPv4-only host).
+    console.error(`[Robink V2 PG] DIKKAT: ${host} icin IPv4 A kaydi yok!`);
+    console.error(`[Robink V2 PG] Bu Supabase projesi IPv6-only olabilir.`);
+    console.error(`[Robink V2 PG] Cozum: Render > Environment > DATABASE_URL'i Supabase`);
+    console.error(`[Robink V2 PG] 'Transaction' Pooler URL'si ile degistirin (port 6543).`);
+    throw new Error(`IPv4 DNS basarisiz: ${host} — Supabase Transaction Pooler URL'sine gecin`);
   }
 }
 
@@ -51,11 +52,11 @@ async function getPool() {
 
   // IPv4 zorlamasi: DNS'i IPv4 ile coz ve IP'yi dogrudan host olarak kullan
   // (pg 8.x'in "family" parametresini tanimamasi nedeniyle)
-  const ipv4 = await resolveIPv4(host);
-  console.log(`[Robink V2 PG] DNS: ${host} -> ${ipv4} (IPv4 zorlandi)`);
+  const resolved = await resolveIPv4(host);
+  console.log(`[Robink V2 PG] DNS: ${host} -> ${resolved.address} (IPv4, family=${resolved.family})`);
 
   pool = new Pool({
-    host: ipv4,
+    host: resolved.address,
     port,
     database,
     user,
@@ -75,7 +76,7 @@ async function initSchema() {
     const fs = require('fs');
     const path = require('path');
     const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-    const p = getPool();
+    const p = await getPool(); // getPool artik async — await sart
     // Supabase / Cloud PG bazen ilk anda yavas cevap verir; 3 denemelik retry ekleyelim
     let lastErr = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
