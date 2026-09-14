@@ -1,0 +1,36 @@
+# ---------- Node / Backend ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ---------- Environment / Secrets ----------
+.env
+.env.local
+.env.*.local
+
+# ---------- Logs / Temp ----------
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- IDE ----------
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ---------- Agent klasoru: sadece slim katalog ----------
+# Tam WinToolify.ps1 ajan tarafindan kullanilmiyor; slim RobinkV2-Catalog.ps1 yeterli.
+agent/WinToolify.ps1
+
+# ---------- Local-only data ----------
+backend/data.json
+!backend/data.example.json
+
+# ---------- PowerShell debug ----------
+*.ps1.xml

@@ -30,46 +30,97 @@ param(
 )
 
 # ============================================================
-# Robink V2 katalog dosyasi (WinToolify.ps1) arama mantigi:
+# Robink V2 katalog dosyasi arama mantigi:
 #   1) -WinToolifyPath (kullanici verdiyse)
-#   2) Ajanin yaninda (ornek: %TEMP%\WinToolify.ps1)
-#   3) %LOCALAPPDATA%\RobinkV2-Catalog.ps1
-#   4) Proje kokunde WinToolify.ps1 (agent/../..)
-#   5) %LOCALAPPDATA%\WinToolify.ps1 (geriye uyumluluk)
-#   6) C:\Robink\WinToolify.ps1 (sabit kurulum)
-#   7) Masaustundeki "yeni program stress" klasoru
+#   2) Ajanin yaninda RobinkV2-Catalog.ps1  (slim, onerilen)
+#   3) Ajanin yaninda WinToolify.ps1        (geriye uyumluluk)
+#   4) %LOCALAPPDATA%\RobinkV2-Catalog.ps1  (self-bootstrap sonrasi cache)
+#   5) Proje kokunde WinToolify.ps1 (agent/../..)
+#   6) %LOCALAPPDATA%\WinToolify.ps1 (geriye uyumluluk)
+#   7) C:\Robink\WinToolify.ps1 (sabit kurulum)
+#   8) Sunucudan indir ($Server/agent/RobinkV2-Catalog.ps1) -> self-bootstrap
 # ============================================================
+
+# $PSScriptRoot ve $MyInvocation ayri ayri kontrol et (PS 5.1 uyumu)
+$scriptDir = $null
+if ($PSScriptRoot) {
+    $scriptDir = $PSScriptRoot
+} elseif ($MyInvocation -and $MyInvocation.MyCommand -and $MyInvocation.MyCommand.Path) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+if (-not $scriptDir) {
+    $scriptDir = (Get-Location).Path
+}
+
+# Proje koku (agent/../..)
+$rootDir = $scriptDir
+$parent1 = Split-Path -Parent $scriptDir
+if ($parent1) {
+    $parent2 = Split-Path -Parent $parent1
+    if ($parent2) { $rootDir = $parent2 }
+}
+
+$localCandidates = @(
+    (Join-Path $scriptDir 'RobinkV2-Catalog.ps1'),
+    (Join-Path $scriptDir 'WinToolify.ps1'),
+    (Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'),
+    (Join-Path $rootDir 'WinToolify.ps1'),
+    (Join-Path $env:LOCALAPPDATA 'WinToolify.ps1'),
+    'C:\Robink\WinToolify.ps1'
+)
+
 $resolvedCatalog = $null
 if ($WinToolifyPath -and (Test-Path -LiteralPath $WinToolifyPath)) {
     $resolvedCatalog = $WinToolifyPath
 } else {
-    $scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-    $candidates = @(
-        (Join-Path $scriptDir 'WinToolify.ps1'),
-        (Join-Path $scriptDir 'RobinkV2-Catalog.ps1'),
-        (Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'),
-        (Join-Path (Split-Path -Parent (Split-Path -Parent $scriptDir)) 'WinToolify.ps1'),
-        (Join-Path $env:LOCALAPPDATA 'WinToolify.ps1'),
-        'C:\Robink\WinToolify.ps1',
-        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'yeni program stress\WinToolify.ps1'),
-        (Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Desktop\yeni program stress\WinToolify.ps1')
-    )
-    foreach ($c in $candidates) {
-        if ($c -and (Test-Path -LiteralPath $c)) { $resolvedCatalog = $c; break }
+    foreach ($c in $localCandidates) {
+        if ($c -and (Test-Path -LiteralPath $c)) {
+            $resolvedCatalog = $c
+            break
+        }
     }
 }
+
+# 7) Sunucudan indir (self-bootstrap) - sadece -Server verilmisse dene
+if (-not $resolvedCatalog -and $Server) {
+    Write-Host "  Yerel katalog bulunamadi. Sunucudan indiriliyor: $Server/agent/RobinkV2-Catalog.ps1" -ForegroundColor Yellow
+    $catalogUrl = "$Server/agent/RobinkV2-Catalog.ps1"
+    $catalogPath = Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'
+    try {
+        # Eski PS + yeni TLS sunuculari icin TLS 1.2 zorla
+        try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
+        if (Test-Path -LiteralPath $catalogPath) {
+            Remove-Item -LiteralPath $catalogPath -Force -ErrorAction SilentlyContinue
+        }
+        Invoke-WebRequest -Uri $catalogUrl -OutFile $catalogPath -UseBasicParsing -ErrorAction Stop -TimeoutSec 60
+        if (Test-Path -LiteralPath $catalogPath) {
+            $size = (Get-Item -LiteralPath $catalogPath).Length
+            if ($size -gt 1024) {
+                $resolvedCatalog = $catalogPath
+                Write-Host "  Katalog sunucudan indirildi ($size byte): $catalogPath" -ForegroundColor Green
+            } else {
+                Write-Host "  Indirilen dosya cok kucuk ($size byte) - muhtemelen hata sayfasi." -ForegroundColor Red
+                Remove-Item -LiteralPath $catalogPath -Force -ErrorAction SilentlyContinue
+            }
+        }
+    } catch {
+        Write-Host "  Sunucudan indirilemedi: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
 if (-not $resolvedCatalog) {
     Write-Host "  Robink V2 katalog dosyasi (WinToolify.ps1) bulunamadi." -ForegroundColor Red
     Write-Host "  Aranan konumlar:" -ForegroundColor Yellow
-    foreach ($c in @(
-        (Join-Path (if ($PSScriptRoot) { $PSScriptRoot } else { '.' }) 'WinToolify.ps1'),
-        (Join-Path $env:LOCALAPPDATA 'RobinkV2-Catalog.ps1'),
-        'C:\Robink\WinToolify.ps1',
-        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'yeni program stress\WinToolify.ps1')
-    )) { Write-Host "    - $c" -ForegroundColor Yellow }
+    foreach ($c in $localCandidates) {
+        Write-Host "    - $c" -ForegroundColor Yellow
+    }
+    if ($Server) {
+        Write-Host "    - $Server/agent/WinToolify.ps1 (indirme basarisiz)" -ForegroundColor Yellow
+    }
     Write-Host "  Cozumler:" -ForegroundColor Yellow
-    Write-Host "    1) RobinkV2-Agent.ps1 -WinToolifyPath 'C:\...\WinToolify.ps1'" -ForegroundColor Yellow
-    Write-Host "    2) Katalogu kopyalayin: Copy-Item 'C:\...\WinToolify.ps1' '$env:LOCALAPPDATA\RobinkV2-Catalog.ps1'" -ForegroundColor Yellow
+    Write-Host "    1) -WinToolifyPath 'C:\...\WinToolify.ps1' ile calistir" -ForegroundColor Yellow
+    Write-Host "    2) WinToolify.ps1'i elle indirip asagidaki konuma kopyala:" -ForegroundColor Yellow
+    Write-Host "       Copy-Item 'C:\...\WinToolify.ps1' '$env:LOCALAPPDATA\RobinkV2-Catalog.ps1'" -ForegroundColor Yellow
     exit 1
 }
 $WinToolifyPath = $resolvedCatalog
