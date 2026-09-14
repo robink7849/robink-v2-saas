@@ -34,3 +34,5 @@ backend/data.json
 
 # ---------- PowerShell debug ----------
 *.ps1.xml
+
+commit-msg.txt

@@ -367,6 +367,54 @@ function serializeCmd(cmd) {
   };
 }
 
+// ---------- ONE-LINE INSTALLER ----------
+// Arkadaslara tek satirlik komut ile ajan gondermek icin.
+// Kullanim:
+//   powershell -ExecutionPolicy Bypass -Command "iex (irm 'https://v6.robink.me/install?code=ABC123&device=EvPC')"
+// Server tarafli parametreler:
+app.get('/install', (req, res) => {
+  const code = String(req.query.code || '').toUpperCase().slice(0, 8);
+  const device = String(req.query.device || '').slice(0, 40).replace(/[^\w\- ]/g, '');
+  const serverUrl = String(req.query.server || process.env.WEB_ORIGIN || 'https://v6.robink.me').replace(/[^\w\-\/:.]/g, '');
+
+  // Pairing code veya device yoksa: kullanim talimati goster
+  if (!code || !device) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.set('Cache-Control', 'no-store');
+    return res.send(
+      "# RobinkV2 Installer - eksik parametre\n" +
+      "# Kullanim:\n" +
+      "#   iex (irm '" + serverUrl + "/install?code=ABC123&device=EvPC')\n" +
+      "# code: 6 haneli pairing kodu (tarayicidan + Cihaz Ekle)\n" +
+      "# device: bu PC'nin adi (bosluksuz, Turkce karakterler olmadan)\n"
+    );
+  }
+
+  const script = [
+    '# RobinkV2 One-Line Installer',
+    '# Otomatik uretildi: ' + new Date().toISOString(),
+    '# Bu script PS 5.1+ uyumlu, ek bagimlilik yok.',
+    "$ErrorActionPreference = 'Stop'",
+    "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}",
+    "",
+    "$tempDir = [System.IO.Path]::GetTempPath()",
+    "$agentPath = Join-Path $tempDir 'Robink-Agent.ps1'",
+    "",
+    "Write-Host '[1/2] Ajan indiriliyor... (' + '" + serverUrl + "/agent/RobinkV2-Agent.ps1' + ')' -ForegroundColor Cyan",
+    "Invoke-WebRequest -Uri '" + serverUrl + "/agent/RobinkV2-Agent.ps1' -OutFile $agentPath -UseBasicParsing -ErrorAction Stop",
+    "if (-not (Test-Path -LiteralPath $agentPath)) { Write-Host 'HATA: Ajan indirilemedi' -ForegroundColor Red; exit 1 }",
+    "",
+    "Write-Host '[2/2] Ajan baslatiliyor... (PairingCode=" + code + ", DeviceName=" + device + ")' -ForegroundColor Cyan",
+    "& '$agentPath' -Server '" + serverUrl + "' -PairingCode '" + code + "' -DeviceName '" + device + "'"
+  ].join('\r\n');
+
+  res.set('Content-Type', 'text/plain; charset=utf-8');
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.send(script);
+});
+
 // ---------- START ----------
 // Static frontend (sona koy ki API routes oncelikli olsun)
 app.use(express.static(PUBLIC_DIR));
